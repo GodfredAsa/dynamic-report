@@ -1,0 +1,23 @@
+reportId,department,schoolAddress,studentName,reportClass,termSession,reportYear,reportDate,attendance,expectedAttendance,vacationDate,classTeacher,classTeacherRemarks,headteacherRemarks,feesBalance,feesNextTerm,subjectName,examScore,classworkScore
+R001,JUNIOR HIGH SCHOOL,"P.O. Box 69, Nyamonye",Omuo Kelvine Oduor,FORM ONE,Term I,2007,20/03/2026,80,90,10/04/2026,Mr. A. Mensah,Good effort in class.,Keep it up for term two!,4800,4200,Mathematics,50,35
+R001,JUNIOR HIGH SCHOOL,"P.O. Box 69, Nyamonye",Omuo Kelvine Oduor,FORM ONE,Term I,2007,20/03/2026,80,90,10/04/2026,Mr. A. Mensah,Good effort in class.,Keep it up for term two!,4800,4200,English Language,40,30
+R001,JUNIOR HIGH SCHOOL,"P.O. Box 69, Nyamonye",Omuo Kelvine Oduor,FORM ONE,Term I,2007,20/03/2026,80,90,10/04/2026,Mr. A. Mensah,Good effort in class.,Keep it up for term two!,4800,4200,Science,55,20
+R001,JUNIOR HIGH SCHOOL,"P.O. Box 69, Nyamonye",Omuo Kelvine Oduor,FORM ONE,Term I,2007,20/03/2026,80,90,10/04/2026,Mr. A. Mensah,Good effort in class.,Keep it up for term two!,4800,4200,Social Studies,45,25
+R001,JUNIOR HIGH SCHOOL,"P.O. Box 69, Nyamonye",Omuo Kelvine Oduor,FORM ONE,Term I,2007,20/03/2026,80,90,10/04/2026,Mr. A. Mensah,Good effort in class.,Keep it up for term two!,4800,4200,French,35,30
+R001,JUNIOR HIGH SCHOOL,"P.O. Box 69, Nyamonye",Omuo Kelvine Oduor,FORM ONE,Term I,2007,20/03/2026,80,90,10/04/2026,Mr. A. Mensah,Good effort in class.,Keep it up for term two!,4800,4200,Computer Studies,60,5
+R001,JUNIOR HIGH SCHOOL,"P.O. Box 69, Nyamonye",Omuo Kelvine Oduor,FORM ONE,Term I,2007,20/03/2026,80,90,10/04/2026,Mr. A. Mensah,Good effort in class.,Keep it up for term two!,4800,4200,Religious Education,30,35
+R001,JUNIOR HIGH SCHOOL,"P.O. Box 69, Nyamonye",Omuo Kelvine Oduor,FORM ONE,Term I,2007,20/03/2026,80,90,10/04/2026,Mr. A. Mensah,Good effort in class.,Keep it up for term two!,4800,4200,Physical Education,25,35
+R002,JUNIOR HIGH SCHOOL,,Ama Serwaa,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,Social Studies,45,35
+R002,JUNIOR HIGH SCHOOL,,Ama Serwaa,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,Mathematics,60,10
+R002,JUNIOR HIGH SCHOOL,,Ama Serwaa,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,English Language,38,20
+R002,JUNIOR HIGH SCHOOL,,Ama Serwaa,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,Science,40,30
+R002,JUNIOR HIGH SCHOOL,,Ama Serwaa,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,French,30,25
+R002,JUNIOR HIGH SCHOOL,,Ama Serwaa,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,Computer Studies,50,20
+R002,JUNIOR HIGH SCHOOL,,Ama Serwaa,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,Religious Education,35,30
+R003,JUNIOR HIGH SCHOOL,,GODFRED,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,Social Studies,45,35
+R003,JUNIOR HIGH SCHOOL,,GODFRED,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,Mathematics,60,10
+R003,JUNIOR HIGH SCHOOL,,GODFRED,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,English Language,38,20
+R003,JUNIOR HIGH SCHOOL,,GODFRED,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,Science,40,30
+R003,JUNIOR HIGH SCHOOL,,GODFRED,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,French,30,25
+R003,JUNIOR HIGH SCHOOL,,GODFRED,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,Computer Studies,50,20
+R003,JUNIOR HIGH SCHOOL,,GODFRED,FORM ONE,Term I,2008,22/03/2026,75,85,,Ms. K. Owusu,,,5000,4500,Religious Education,35,30
