@@ -1,0 +1,275 @@
+<section class="no-print mb-8">
+  <div class="flex flex-col gap-6">
+    <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-600/60 -mt-2">
+      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Single Report Section</h2>
+      <div class="text-slate-400 text-xs">Enter details and scores for one student</div>
+    </div>
+
+    <div class="bg-slate-800/80 rounded-xl border border-slate-600/80 p-4 shadow-sm">
+      <h3 class="text-slate-200 font-semibold text-sm mb-3">Grade system</h3>
+      <ul class="text-slate-400 text-xs space-y-1 font-mono flex flex-wrap gap-x-6 gap-y-1">
+        <li><span class="text-amber-400 font-medium">A+</span> 90–100</li>
+        <li><span class="text-amber-400 font-medium">A</span> 80–89</li>
+        <li><span class="text-amber-400 font-medium">A−</span> 75–79</li>
+        <li><span class="text-emerald-400 font-medium">B+</span> 70–74</li>
+        <li><span class="text-emerald-400 font-medium">B</span> 65–69</li>
+        <li><span class="text-emerald-400 font-medium">B−</span> 60–64</li>
+        <li><span class="text-cyan-400 font-medium">C+</span> 55–59</li>
+        <li><span class="text-cyan-400 font-medium">C</span> 50–54</li>
+        <li><span class="text-cyan-400 font-medium">C−</span> 45–49</li>
+        <li><span class="text-orange-400 font-medium">D+</span> 40–44</li>
+        <li><span class="text-orange-400 font-medium">D</span> 35–39</li>
+        <li><span class="text-orange-400 font-medium">D−</span> 30–34</li>
+        <li><span class="text-violet-400 font-medium">E</span> 0–29</li>
+      </ul>
+    </div>
+
+    <div class="min-w-0 bg-slate-800/80 rounded-xl border border-slate-600/80 p-6 md:p-8 shadow-sm space-y-8">
+      <div>
+        <div class="flex flex-wrap items-baseline justify-between gap-2 mb-4 pb-2 border-b border-slate-600/60">
+          <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">School information</h2>
+          <div class="text-slate-200 text-sm font-semibold">DYNAMIC DIVINE ACADEMY</div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Department <span class="text-red-400">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="form.department"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="e.g. JUNIOR HIGH SCHOOL"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Address <span class="text-slate-500">(optional)</span></label>
+            <input
+              type="text"
+              [(ngModel)]="form.schoolAddress"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="e.g. P.O. Box 69, Nyamonye"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider mb-4 pb-2 border-b border-slate-600/60">
+          Student &amp; report details
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="sm:col-span-2 lg:col-span-1">
+            <label class="block text-xs text-slate-400 mb-1.5">Student name <span class="text-red-400">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="form.studentName"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Form / Class <span class="text-red-400">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="form.reportClass"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Term / Session <span class="text-red-400">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="form.termSession"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Year <span class="text-red-400">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="form.reportYear"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Report date <span class="text-red-400">*</span></label>
+            <input
+              type="date"
+              [(ngModel)]="form.reportDate"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Attendance <span class="text-slate-500">(optional)</span></label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              [(ngModel)]="form.attendance"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Expected Attendance <span class="text-slate-500">(optional)</span></label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="1"
+              [(ngModel)]="form.expectedAttendance"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Vacation date <span class="text-slate-500">(optional)</span></label>
+            <input
+              type="date"
+              [(ngModel)]="form.vacationDate"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Class teacher <span class="text-red-400">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="form.classTeacher"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div class="sm:col-span-2 lg:col-span-3">
+            <label class="block text-xs text-slate-400 mb-1.5">Class teacher's comments <span class="text-slate-500">(optional)</span></label>
+            <textarea
+              rows="2"
+              [(ngModel)]="form.classTeacherRemarks"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition resize-y min-h-[4rem]"></textarea>
+          </div>
+        </div>
+        <div class="mt-4">
+          <label class="block text-xs text-slate-400 mb-1.5">Headteacher's comments <span class="text-slate-500">(optional)</span></label>
+          <textarea
+            rows="2"
+            [(ngModel)]="form.headteacherRemarks"
+            [ngModelOptions]="{ standalone: true }"
+            class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition resize-y min-h-[4rem]"></textarea>
+        </div>
+      </div>
+
+      <div class="bg-slate-700/30 rounded-lg border border-slate-600/60 p-4">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider mb-4">Fees record</h2>
+        <p class="text-slate-500 text-xs mb-3">Total due = Balance + Next term</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Fees balance <span class="text-red-400">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="form.feesBalance"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1.5">Fees for next term <span class="text-red-400">*</span></label>
+            <input
+              type="text"
+              [(ngModel)]="form.feesNextTerm"
+              [ngModelOptions]="{ standalone: true }"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 outline-none transition" />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider mb-2 pb-2 border-b border-slate-600/60">Subjects</h2>
+        <p class="text-slate-400 text-xs mb-4">
+          Exam score (max 60) + Class score (max 40) = Total (100). Grade and remarks can be edited.
+        </p>
+        <div class="space-y-3">
+          @for (s of subjects; track $index) {
+            <div class="subject-row grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+              <input
+                type="text"
+                placeholder="Subject"
+                [(ngModel)]="s.name"
+                [ngModelOptions]="{ standalone: true }"
+                class="subject-name col-span-2 md:col-span-2 bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500/60 outline-none" />
+              <input
+                type="number"
+                placeholder="Exam"
+                min="0"
+                max="60"
+                [(ngModel)]="s.exam"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="onScoreInput($index, 'exam')"
+                class="exam-score col-span-1 md:col-span-1 bg-slate-700/80 border border-slate-600 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-emerald-500/60 outline-none" />
+              <input
+                type="number"
+                placeholder="Class"
+                min="0"
+                max="40"
+                [(ngModel)]="s.classwork"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="onScoreInput($index, 'class')"
+                class="classwork-score col-span-1 md:col-span-1 bg-slate-700/80 border border-slate-600 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-emerald-500/60 outline-none" />
+              <span class="subject-sum col-span-1 text-amber-400 text-sm font-medium" title="Sum (Exam + Class)">{{
+                sumLine($index)
+              }}</span>
+              <input
+                type="text"
+                placeholder="Grade"
+                maxlength="3"
+                [(ngModel)]="s.grade"
+                [ngModelOptions]="{ standalone: true }"
+                class="subject-grade col-span-1 md:col-span-1 bg-slate-700/80 border border-slate-600 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-emerald-500/60 outline-none" />
+              <input
+                type="text"
+                placeholder="Remarks"
+                [(ngModel)]="s.remarks"
+                [ngModelOptions]="{ standalone: true }"
+                class="subject-remarks col-span-2 md:col-span-2 bg-slate-700/80 border border-slate-600 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-emerald-500/60 outline-none" />
+              <button
+                type="button"
+                (click)="removeSubject($index)"
+                class="remove-row col-span-1 text-red-400 hover:text-red-300 text-sm font-medium"
+                title="Remove">
+                ×
+              </button>
+            </div>
+          }
+        </div>
+        <button
+          type="button"
+          (click)="addSubject()"
+          class="mt-3 px-3 py-1.5 rounded-lg border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10 text-sm transition">
+          + Add subject
+        </button>
+      </div>
+
+      <div class="pt-2">
+        <button
+          type="button"
+          (click)="generateReport()"
+          class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium text-sm shadow-sm transition">
+          Generate report
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div
+  id="reportSection"
+  class="report-modal"
+  [class.hidden]="!showReportModal"
+  [attr.aria-hidden]="!showReportModal">
+  <div class="report-modal-backdrop no-print"></div>
+  <div class="report-modal-content">
+    <div class="report-modal-actions no-print">
+      <button type="button" (click)="printModalReport()" class="report-modal-btn report-modal-btn-print">Print report</button>
+      <button type="button" (click)="closeReportModal()" class="report-modal-btn report-modal-btn-close">Close</button>
+    </div>
+    <div class="report-border">
+      @if (reportHtml) {
+        <div #reportHost class="report-sheet" [innerHTML]="reportHtml"></div>
+      }
+    </div>
+  </div>
+</div>

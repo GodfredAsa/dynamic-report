@@ -1,0 +1,68 @@
+<section class="no-print mb-8">
+  <div class="bg-slate-800/60 rounded-xl border border-emerald-500/20 p-4 shadow-sm">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3 pb-2 border-b border-slate-600/60">
+      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Multi Report Section</h2>
+      <div class="text-slate-400 text-xs">Upload CSV → generate & print each student</div>
+    </div>
+    <div class="flex flex-col sm:flex-row flex-wrap gap-3 mb-4">
+      <button
+        type="button"
+        (click)="downloadDataTemplate()"
+        class="px-5 py-2.5 bg-slate-700/60 hover:bg-slate-700 text-slate-100 border border-slate-600 rounded-lg font-medium text-sm shadow-sm transition">
+        Download Data Template
+      </button>
+      <button
+        type="button"
+        (click)="openTemplateGuide()"
+        class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium text-sm shadow-sm transition">
+        View Template Guide
+      </button>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-3 items-start">
+      <div class="flex-1 w-full">
+        <label class="block text-xs text-slate-400 mb-1.5">CSV file (one row per subject)</label>
+        <input
+          type="file"
+          accept=".csv,text/csv"
+          (change)="onCsvSelected($event)"
+          class="block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-500" />
+      </div>
+      <button
+        type="button"
+        (click)="loadCsvPreview()"
+        class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium text-sm shadow-sm transition">
+        Load &amp; Preview
+      </button>
+    </div>
+    <p class="text-slate-500 text-xs mt-3">
+      Use a “long format” CSV: each student report is grouped by <code class="text-slate-400">reportId</code>, with
+      multiple subject rows per student.
+    </p>
+    <div class="text-slate-400 text-xs mt-2">{{ csvStatus }}</div>
+    <div class="mt-4 space-y-3">
+      @for (g of csvGroups; track g.id) {
+        <details class="bg-slate-800/50 border border-slate-600/60 rounded-lg p-3">
+          <summary class="cursor-pointer list-none">
+            <div class="min-w-0">
+              <div class="text-slate-200 font-semibold text-sm truncate">{{ g.meta.studentName || 'Student' }}</div>
+              <div class="text-slate-400 text-xs truncate">
+                {{ g.meta.reportClass }} {{ g.meta.termSession }} • {{ g.subjects.length }} subject(s)
+              </div>
+            </div>
+          </summary>
+          <div class="mt-3 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+            <div class="text-slate-400 text-xs">
+              Department: {{ g.meta.department || '—' }} • Date: {{ g.meta.reportDate || '—' }}
+            </div>
+            <button
+              type="button"
+              (click)="printCsvReport(g); $event.stopPropagation()"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium text-sm transition">
+              Print / Download PDF
+            </button>
+          </div>
+        </details>
+      }
+    </div>
+  </div>
+</section>

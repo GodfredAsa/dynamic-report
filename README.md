@@ -1,4 +1,15 @@
-# SchoolReport
+# School Report
+
+Angular web app for building **terminal (end-of-term) school reports** from subject scores. Teachers or admins can fill in school and student details, enter exam and classwork marks per subject, and generate a **print-ready** report (browser print / save as PDF). The app also supports **bulk generation** from a CSV: long-format data grouped by `reportId`, with one row per subject per student, then preview and print each student’s report individually.
+
+**Highlights**
+
+- **Single-report mode:** Form for department, student, term/class, dates, attendance, class teacher and headteacher comments, fees (balance + next term → total due), and a dynamic list of subjects.
+- **Scoring:** Exam (max 60) + classwork (max 40) = total out of 100; grades and remarks follow a fixed letter scale (A+ through E).
+- **Multi-report mode:** Upload CSV, load & preview groups, print or download PDF per student. Downloadable data template and link to a template guide from the UI.
+- **Stack:** [Angular](https://angular.dev) 19, standalone components, reactive templates.
+
+---
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.22.
 
