@@ -32,6 +32,9 @@ export class SingleReportComponent implements AfterViewChecked {
   private sanitizer = inject(DomSanitizer);
   private doc = inject(DOCUMENT);
 
+  /** Collapsible section (header always visible). */
+  singleSectionOpen = false;
+
   form: ReportFormData = this.report.emptyForm();
   subjects: SubjectLine[] = [this.emptySubject()];
 

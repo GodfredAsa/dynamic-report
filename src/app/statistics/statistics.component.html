@@ -1,0 +1,292 @@
+<div class="w-full max-w-5xl mx-auto">
+  <header class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-start gap-4">
+      <a
+        routerLink="/modules"
+        class="mt-1 text-slate-400 hover:text-emerald-400 transition text-sm shrink-0"
+        title="Back to modules">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        <span class="sr-only">Back to modules</span>
+      </a>
+      <div>
+        <h1 class="text-2xl font-semibold text-emerald-400 flex items-center gap-3">
+          <i class="fa-solid fa-chart-line text-emerald-500" aria-hidden="true"></i>
+          Statistics &amp; performance
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">
+          Headline counts from <code class="text-slate-500">staff.json</code>,
+          <code class="text-slate-500">students.json</code>, and the fee ledger
+          <code class="text-slate-500">fees.json</code>; gender charts use
+          <code class="text-slate-500">departments.json</code>.
+        </p>
+        @if (user(); as name) {
+          <p class="text-slate-500 text-xs mt-2">Signed in as {{ name }}</p>
+        }
+      </div>
+    </div>
+    <button
+      type="button"
+      (click)="logout()"
+      class="shrink-0 px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+      Log out
+    </button>
+  </header>
+
+  @if (!studentsLoaded() || !departmentsLoaded() || !staffLoaded() || !feeLedgerLoaded()) {
+    <p class="text-slate-500 text-sm mb-6">Loading staff, students, departments, and fee ledger…</p>
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-10">
+    <article
+      class="rounded-lg border border-slate-600/80 bg-slate-800/60 p-3.5 shadow-sm flex flex-col min-w-0"
+      aria-labelledby="card-staff-heading">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <h2 id="card-staff-heading" class="text-xs font-semibold uppercase tracking-wide text-emerald-400/90">
+          Staff
+        </h2>
+        <span
+          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-600/15 text-emerald-400"
+          aria-hidden="true">
+          <i class="fa-solid fa-chalkboard-user text-sm"></i>
+        </span>
+      </div>
+      <p class="text-2xl font-semibold tabular-nums text-slate-100 mb-1.5 leading-none">
+        {{ staffBreakdown().total }}
+      </p>
+      <p class="text-[10px] text-slate-500 mb-2.5 leading-snug">Total in <code class="text-slate-600">staff.json</code></p>
+      <div class="mt-auto space-y-1.5 pt-2 border-t border-slate-600/50">
+        <div class="flex items-center justify-between gap-2 text-xs">
+          <span class="text-slate-400">Teaching</span>
+          <span class="font-medium tabular-nums text-sky-300">{{ staffBreakdown().teaching }}</span>
+        </div>
+        <div class="flex items-center justify-between gap-2 text-xs">
+          <span class="text-slate-400">Non-teaching</span>
+          <span class="font-medium tabular-nums text-[#34ca94]">{{ staffBreakdown().nonTeaching }}</span>
+        </div>
+      </div>
+      <p class="text-[10px] text-slate-600 mt-2.5 leading-snug">
+        Edit on
+        <a routerLink="/staff" class="text-emerald-500/90 hover:text-emerald-400">Staff</a>
+        (<code class="text-slate-600">staffCategory</code>).
+      </p>
+    </article>
+
+    <article
+      class="rounded-lg border border-slate-600/80 bg-slate-800/60 p-3.5 shadow-sm flex flex-col min-w-0"
+      aria-labelledby="card-students-heading">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <h2 id="card-students-heading" class="text-xs font-semibold uppercase tracking-wide text-emerald-400/90">
+          Students
+        </h2>
+        <span
+          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-600/15 text-emerald-400"
+          aria-hidden="true">
+          <i class="fa-solid fa-user-graduate text-sm"></i>
+        </span>
+      </div>
+      <p class="text-2xl font-semibold tabular-nums text-slate-100 mb-1.5 leading-none">
+        {{ totalStudentCount() }}
+      </p>
+      <p class="text-[10px] text-slate-500 mt-auto leading-snug">
+        Total in <code class="text-slate-600">students.json</code> (all learners).
+      </p>
+    </article>
+
+    <article
+      class="rounded-lg border border-slate-600/80 bg-slate-800/60 p-3.5 shadow-sm flex flex-col min-w-0"
+      aria-labelledby="card-people-heading">
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <h2 id="card-people-heading" class="text-xs font-semibold uppercase tracking-wide text-emerald-400/90">
+          People in system
+        </h2>
+        <span
+          class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#03AED2]/15 text-[#03AED2]"
+          aria-hidden="true">
+          <i class="fa-solid fa-users text-sm"></i>
+        </span>
+      </div>
+      <p class="text-2xl font-semibold tabular-nums text-slate-100 mb-1.5 leading-none">
+        {{ totalPeopleCount() }}
+      </p>
+      <p class="text-[10px] text-slate-500 mb-2 leading-snug">
+        Staff ({{ staffBreakdown().total }}) + students ({{ totalStudentCount() }}).
+      </p>
+      <p class="text-[10px] text-slate-600 mt-auto leading-snug">
+        Sum of <code class="text-slate-600">staff.json</code> and <code class="text-slate-600">students.json</code>.
+      </p>
+    </article>
+
+    <article
+      class="rounded-lg border border-slate-600/80 bg-slate-800/60 p-4 shadow-sm flex flex-col min-w-0 md:col-span-3 mt-3 md:mt-5"
+      aria-labelledby="card-ledger-fees-heading">
+      <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+        <div class="flex items-start gap-2 min-w-0">
+          <span
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-amber-500/15 text-amber-400"
+            aria-hidden="true">
+            <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
+          </span>
+          <div>
+            <h2 id="card-ledger-fees-heading" class="text-xs font-semibold uppercase tracking-wide text-emerald-400/90">
+              Fee ledger summary
+            </h2>
+            <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">
+              Totals from <code class="text-slate-600">fees.json</code> (Utility, Feeding, Classes, Termly money). Manage entries under
+              <a routerLink="/fees" class="text-emerald-500/90 hover:text-emerald-400">Fees management</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+      @if (!feeLedgerLoaded()) {
+        <p class="text-slate-500 text-sm py-4">Loading fee data…</p>
+      } @else if (feeStore.fees().length === 0) {
+        <p class="text-slate-500 text-sm py-2">No fee entries yet.</p>
+      } @else {
+        @for (block of feeLedgerBreakdown(); track block.currency) {
+          <div
+            class="rounded-lg border border-slate-600/50 bg-slate-900/30 p-3 mb-3 last:mb-0"
+            [attr.aria-label]="'Fee totals in ' + block.currency">
+            <div class="flex flex-wrap items-baseline justify-between gap-2 mb-3 pb-3 border-b border-slate-600/40">
+              <span class="text-[10px] uppercase tracking-wide text-slate-500">Total ({{ block.currency }})</span>
+              <span class="text-xl font-semibold tabular-nums text-slate-100">
+                {{ formatLedgerMoney(block.total, block.currency) }}
+              </span>
+            </div>
+            <ul class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+              @for (t of feeTypes; track t) {
+                <li class="min-w-0">
+                  <p class="text-[10px] uppercase tracking-wide text-slate-500 mb-0.5 truncate" [attr.title]="t">{{ t }}</p>
+                  <p class="font-medium tabular-nums text-slate-200">
+                    {{ formatLedgerMoney(block.byType[t], block.currency) }}
+                  </p>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      }
+    </article>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+    <section
+      class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8"
+      aria-labelledby="donut-heading">
+      <h2 id="donut-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">All departments — gender (donut)</h2>
+      <p class="text-slate-500 text-xs mb-6">
+        Unique students who appear in at least one department’s class list. Each person is counted once for male / female
+        totals.
+      </p>
+      @if (assignedGenderTotals().total === 0) {
+        <div class="rounded-lg border border-slate-600/60 bg-slate-900/40 px-4 py-8 text-center">
+          <p class="text-slate-400 text-sm">No students assigned to departments yet.</p>
+          <p class="text-slate-500 text-xs mt-2">
+            Use <span class="text-slate-400">Students → Assign to department</span> or
+            <span class="text-slate-400">Classes → Students</span>.
+          </p>
+        </div>
+      } @else {
+        <div class="flex flex-col sm:flex-row sm:items-center gap-8">
+          <div
+            class="relative mx-auto h-52 w-52 shrink-0 rounded-full shadow-lg ring-2 ring-slate-600/40"
+            [style.background]="genderDonutConic()"
+            role="img"
+            [attr.aria-label]="
+              'Gender split: ' +
+              assignedGenderTotals().male +
+              ' male, ' +
+              assignedGenderTotals().female +
+              ' female'
+            ">
+            <div
+              class="absolute inset-[24%] flex flex-col items-center justify-center rounded-full bg-slate-800 shadow-inner">
+              <span class="text-3xl font-semibold tabular-nums text-slate-100">{{ assignedGenderTotals().total }}</span>
+              <span class="text-xs text-slate-500 uppercase tracking-wide">students</span>
+            </div>
+          </div>
+          <div class="flex-1 space-y-3 min-w-0">
+            <div class="flex items-center gap-3">
+              <span class="h-3 w-3 shrink-0 rounded-full bg-sky-400" aria-hidden="true"></span>
+              <div class="min-w-0 flex-1 flex justify-between gap-2 text-sm">
+                <span class="text-slate-300">Male</span>
+                <span class="text-slate-400 tabular-nums">
+                  {{ assignedGenderTotals().male }}
+                  <span class="text-slate-500">({{ donutMalePct() }}%)</span>
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="h-3 w-3 shrink-0 rounded-full bg-[#34ca94]" aria-hidden="true"></span>
+              <div class="min-w-0 flex-1 flex justify-between gap-2 text-sm">
+                <span class="text-slate-300">Female</span>
+                <span class="text-slate-400 tabular-nums">
+                  {{ assignedGenderTotals().female }}
+                  <span class="text-slate-500">({{ donutFemalePct() }}%)</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </section>
+
+    <section
+      class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8 flex flex-col"
+      aria-labelledby="bars-heading">
+      <h2 id="bars-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">By department — stacked bars</h2>
+      <p class="text-slate-500 text-xs mb-6">
+        Each bar is one department. Blue = male, teal (<code class="text-slate-500">#34ca94</code>) = female among students
+        on that department’s list (a student in two departments appears in both bars).
+      </p>
+      <div class="flex flex-wrap gap-4 text-xs text-slate-500 mb-4">
+        <span class="inline-flex items-center gap-1.5">
+          <span class="h-2 w-4 rounded-sm bg-sky-500"></span> Male
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <span class="h-2 w-4 rounded-sm bg-[#34ca94]"></span> Female
+        </span>
+      </div>
+      @if (departmentStore.departments().length === 0) {
+        <p class="text-slate-500 text-sm">No departments defined. Add them under Classes &amp; departments.</p>
+      } @else {
+        <ul class="space-y-5 flex-1 min-h-0 overflow-y-auto max-h-[28rem] pr-1">
+          @for (row of departmentGenderRows(); track row.id) {
+            <li>
+              <div class="flex flex-wrap items-baseline justify-between gap-2 mb-1.5">
+                <span class="text-sm font-medium text-slate-200 truncate" [attr.title]="row.name">{{ row.name }}</span>
+                <span class="text-xs text-slate-500 tabular-nums shrink-0">
+                  @if (row.total === 0) {
+                    <span class="text-slate-600">No students assigned</span>
+                  } @else {
+                    {{ row.male }} M · {{ row.female }} F · {{ row.total }} total
+                  }
+                </span>
+              </div>
+              <div
+                class="h-4 w-full rounded-md bg-slate-700/80 overflow-hidden flex"
+                role="presentation"
+                [attr.aria-label]="row.name + ': ' + row.male + ' male, ' + row.female + ' female'">
+                @if (row.total === 0) {
+                  <div class="h-full w-full bg-slate-600/40"></div>
+                } @else {
+                  <div
+                    class="h-full bg-sky-500 min-w-0 transition-[width] duration-300"
+                    [style.width.%]="row.malePct"></div>
+                  <div
+                    class="h-full min-w-0 transition-[width] duration-300 bg-[#34ca94]"
+                    [style.width.%]="row.femalePct"></div>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+
+  <p class="text-center">
+    <a routerLink="/modules" class="text-emerald-400/90 text-sm font-medium hover:text-emerald-300 transition">
+      ← Back to modules
+    </a>
+  </p>
+</div>

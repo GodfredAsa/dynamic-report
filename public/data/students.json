@@ -1,0 +1,16 @@
+[
+  {
+    "id": "stu-1",
+    "displayName": "Kofi Mensah",
+    "gender": "male",
+    "guardianName": "Ama Mensah",
+    "guardianPhone": "+233 24 000 0001"
+  },
+  {
+    "id": "stu-2",
+    "displayName": "Abena Owusu",
+    "gender": "female",
+    "guardianName": "Kwame Owusu",
+    "guardianPhone": "+233 20 000 0002"
+  }
+]

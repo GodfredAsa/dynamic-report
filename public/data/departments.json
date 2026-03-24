@@ -1,0 +1,17 @@
+[
+  {
+    "id": "DEPT-01",
+    "name": "KG DEPARTMENT",
+    "head": "Abi Administrator",
+    "members": 3,
+    "students": 10,
+    "location": "Accra, Greater Accra, GHA",
+    "status": "Active",
+    "assignedStaffIds": [
+      "usr-4"
+    ],
+    "assignedStudentIds": [
+      "stu-2"
+    ]
+  }
+]

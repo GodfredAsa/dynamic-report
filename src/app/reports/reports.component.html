@@ -1,0 +1,32 @@
+<div class="w-full lg:w-4/5 max-w-[1600px] mx-auto">
+  <header class="no-print mb-8 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+    <div class="flex items-start gap-3 min-w-0">
+      <a
+        routerLink="/modules"
+        class="no-print mt-1 text-slate-400 hover:text-emerald-400 transition text-sm shrink-0"
+        title="Back to modules">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        <span class="sr-only">Back to modules</span>
+      </a>
+      <div class="min-w-0">
+        <h1 class="text-2xl font-semibold text-emerald-400 flex flex-wrap items-center gap-2">
+          <i class="fa-solid fa-file-lines text-emerald-500 shrink-0" aria-hidden="true"></i>
+          <span>Subject Scores → Terminal Report</span>
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">Set exam and classwork weights below → Printable report</p>
+        @if (user(); as name) {
+          <p class="text-slate-500 text-xs mt-2">Signed in as {{ name }}</p>
+        }
+      </div>
+    </div>
+    <button
+      type="button"
+      (click)="logout()"
+      class="no-print shrink-0 px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+      Log out
+    </button>
+  </header>
+
+  <app-multi-report />
+  <app-single-report />
+</div>

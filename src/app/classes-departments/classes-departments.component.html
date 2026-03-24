@@ -1,0 +1,558 @@
+<div class="w-full max-w-6xl mx-auto">
+  <header class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-start gap-4">
+      <a
+        routerLink="/modules"
+        class="mt-1 text-slate-400 hover:text-emerald-400 transition text-sm shrink-0"
+        title="Back to modules">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        <span class="sr-only">Back to modules</span>
+      </a>
+      <div>
+        <h1 class="text-2xl font-semibold text-emerald-400 flex items-center gap-3">
+          <i class="fa-solid fa-school text-emerald-500" aria-hidden="true"></i>
+          Classes &amp; departments
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">
+          Departments are read from <code class="text-slate-500">public/data/departments.json</code>. Adding or removing
+          rows saves that file (dev: run <code class="text-slate-500">npm run data-api</code> next to
+          <code class="text-slate-500">ng serve</code>), then the list reloads from disk.
+        </p>
+        @if (user(); as name) {
+          <p class="text-slate-500 text-xs mt-2">Signed in as {{ name }}</p>
+        }
+      </div>
+    </div>
+    <button
+      type="button"
+      (click)="logout()"
+      class="shrink-0 px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+      Log out
+    </button>
+  </header>
+
+  @if (departmentsLoadError()) {
+    <div class="mb-4 px-3 py-2 rounded-lg bg-amber-950/40 border border-amber-600/40 text-amber-200 text-sm" role="status">
+      {{ departmentsLoadError() }} — using an empty list until the file is available.
+    </div>
+  }
+
+  <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8 mb-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-600/60">
+      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Departments</h2>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          (click)="reloadDepartmentsFromFile()"
+          class="px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+          <i class="fa-solid fa-rotate mr-2" aria-hidden="true"></i>Reload from file
+        </button>
+        <button
+          type="button"
+          (click)="exportJson()"
+          class="px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+          <i class="fa-solid fa-download mr-2" aria-hidden="true"></i>Download JSON
+        </button>
+      </div>
+    </div>
+    <p class="text-slate-500 text-xs mb-6 -mt-2">
+      <strong class="text-slate-400">Persistence:</strong> use Download only for a backup. Save to disk happens
+      automatically when you add, remove, or import — if the data API is running.
+    </p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div>
+        <h3 class="text-slate-200 font-medium text-sm mb-4">Add department</h3>
+        <p class="text-slate-500 text-xs mb-4">
+          <code class="text-slate-400">id</code> is generated automatically (<span class="text-slate-400">DEPT-01</span>,
+          <span class="text-slate-400">DEPT-02</span>, …). Other fields match the JSON export:
+          <code class="text-slate-400">name</code>, <code class="text-slate-400">head</code>,
+          <code class="text-slate-400">members</code>, <code class="text-slate-400">students</code>,
+          <code class="text-slate-400">location</code>, <code class="text-slate-400">status</code>.
+          Imported rows may still use custom ids (e.g. <code class="text-slate-400">SCI-04</code>).
+        </p>
+        @if (formError) {
+          <div
+            class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+            role="alert">
+            {{ formError }}
+          </div>
+        }
+        <form (ngSubmit)="addDepartment()" class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Status</label>
+              <select
+                name="status"
+                [(ngModel)]="draft.status"
+                class="input-field w-full sm:max-w-xs bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Archived">Archived</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Name <span class="text-red-400">*</span></label>
+            <input
+              type="text"
+              name="name"
+              [(ngModel)]="draft.name"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+              placeholder="Department name" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Head</label>
+            <select
+              name="head"
+              [(ngModel)]="draft.head"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+              <option value="">— No head selected —</option>
+              @for (u of appUsers(); track u.id) {
+                <option [value]="u.displayName">{{ u.displayName }} ({{ u.email }})</option>
+              }
+            </select>
+            <p class="text-slate-500 text-xs mt-1.5">
+              Names come from <code class="text-slate-400">public/data/staff.json</code> (reload the Staff page or app
+              after editing that file). Department records still store the head as a plain name string.
+            </p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Members</label>
+              <input
+                type="number"
+                name="members"
+                min="0"
+                [(ngModel)]="draft.members"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Students</label>
+              <input
+                type="number"
+                name="students"
+                min="0"
+                [(ngModel)]="draft.students"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Location</label>
+            <input
+              type="text"
+              name="location"
+              [(ngModel)]="draft.location"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+              placeholder="e.g. West Wing, Floor 3" />
+          </div>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button
+              type="submit"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+              Save department
+            </button>
+            <button
+              type="button"
+              (click)="applySample()"
+              class="px-4 py-2 border border-slate-500 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+              Fill sample fields
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div>
+        <h3 class="text-slate-200 font-medium text-sm mb-4">Import JSON</h3>
+        <p class="text-slate-500 text-xs mb-3">Upload one object or an array of objects with the same fields.</p>
+        <input
+          type="file"
+          accept=".json,application/json"
+          (change)="onImportFile($event)"
+          class="block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-600 file:text-white hover:file:bg-slate-500 mb-3" />
+        <div class="flex flex-wrap gap-2 mb-2">
+          <button
+            type="button"
+            (click)="runImport(false)"
+            class="px-3 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-slate-200 text-sm">
+            Merge by ID
+          </button>
+          <button
+            type="button"
+            (click)="runImport(true)"
+            class="px-3 py-2 bg-amber-900/40 hover:bg-amber-900/60 border border-amber-700/50 text-amber-200 text-sm rounded-lg">
+            Replace all
+          </button>
+        </div>
+        @if (importMessage) {
+          <p class="text-slate-400 text-xs">{{ importMessage }}</p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-slate-600/80 bg-slate-800/40 overflow-hidden">
+    <div class="px-4 py-3 border-b border-slate-600/60 text-slate-300 text-sm font-medium">
+      Saved departments ({{ departments().length }})
+    </div>
+    <div class="overflow-x-auto">
+      @if (departments().length === 0) {
+        <p class="p-8 text-center text-slate-500 text-sm">No departments yet. Add one above or import JSON.</p>
+      } @else {
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-slate-800/80 text-xs uppercase text-slate-400">
+            <tr>
+              <th class="px-4 py-3 font-medium">ID</th>
+              <th class="px-4 py-3 font-medium">Name</th>
+              <th class="px-4 py-3 font-medium">Head</th>
+              <th class="px-4 py-3 font-medium min-w-[8rem]">Assigned staff</th>
+              <th class="px-4 py-3 font-medium min-w-[8rem]">Assigned students</th>
+              <th class="px-4 py-3 font-medium text-right">Members</th>
+              <th class="px-4 py-3 font-medium text-right">Students</th>
+              <th class="px-4 py-3 font-medium">Location</th>
+              <th class="px-4 py-3 font-medium">Status</th>
+              <th class="px-4 py-3 font-medium min-w-[14rem] text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-700/60">
+            @for (d of departments(); track d.id) {
+              <tr class="hover:bg-slate-800/40">
+                <td class="px-4 py-3 font-mono text-emerald-400/90">{{ d.id }}</td>
+                <td class="px-4 py-3">{{ d.name }}</td>
+                <td class="px-4 py-3">{{ d.head || '—' }}</td>
+                <td
+                  class="px-4 py-3 text-slate-400 text-xs max-w-[12rem] truncate align-top"
+                  [attr.title]="assignedStaffSummary(d)">
+                  {{ assignedStaffSummary(d) }}
+                </td>
+                <td
+                  class="px-4 py-3 text-slate-400 text-xs max-w-[12rem] truncate align-top"
+                  [attr.title]="assignedStudentsSummary(d)">
+                  {{ assignedStudentsSummary(d) }}
+                </td>
+                <td class="px-4 py-3 text-right tabular-nums">{{ d.members }}</td>
+                <td class="px-4 py-3 text-right tabular-nums">{{ d.students }}</td>
+                <td class="px-4 py-3 text-slate-400">{{ d.location || '—' }}</td>
+                <td class="px-4 py-3">
+                  <span
+                    [class]="
+                      d.status === 'Active'
+                        ? 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-emerald-900/40 text-emerald-300'
+                        : 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-400'
+                    ">
+                    {{ d.status }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                  <button
+                    type="button"
+                    (click)="openAssignStaffModal(d)"
+                    class="text-[#D4AF37] hover:brightness-110 text-xs font-medium transition">
+                    Staff
+                  </button>
+                  <button
+                    type="button"
+                    (click)="openAssignStudentsModal(d)"
+                    class="text-sky-400 hover:text-sky-300 text-xs font-medium transition">
+                    Students
+                  </button>
+                  <button
+                    type="button"
+                    (click)="openEditModal(d)"
+                    class="text-[#03AED2] hover:opacity-80 text-xs font-medium transition">
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    (click)="removeDepartment(d.id)"
+                    class="text-red-400 hover:text-red-300 text-xs font-medium">
+                    Remove
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+
+  <p class="text-center mt-8">
+    <a
+      routerLink="/modules"
+      class="text-emerald-400/90 text-sm font-medium hover:text-emerald-300 transition">
+      ← Back to modules
+    </a>
+  </p>
+
+  @if (showDepartmentModal) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dept-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeEditModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="dept-modal-title" class="text-lg font-semibold text-emerald-400">Update department</h2>
+          <button
+            type="button"
+            (click)="closeEditModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <p class="text-slate-500 text-xs mb-4">
+            ID <span class="font-mono text-emerald-400/90">{{ editId }}</span> (cannot be changed)
+          </p>
+          @if (editFormError) {
+            <div
+              class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+              role="alert">
+              {{ editFormError }}
+            </div>
+          }
+          <form (ngSubmit)="saveDepartmentEdit()" class="space-y-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Status</label>
+              <select
+                name="editStatus"
+                [(ngModel)]="editDraft.status"
+                class="input-field w-full max-w-xs bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Archived">Archived</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Name <span class="text-red-400">*</span></label>
+              <input
+                type="text"
+                name="editName"
+                [(ngModel)]="editDraft.name"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Head</label>
+              <select
+                name="editHead"
+                [(ngModel)]="editDraft.head"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="">— No head selected —</option>
+                @for (u of appUsers(); track u.id) {
+                  <option [value]="u.displayName">{{ u.displayName }} ({{ u.email }})</option>
+                }
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Members</label>
+                <input
+                  type="number"
+                  name="editMembers"
+                  min="0"
+                  [(ngModel)]="editDraft.members"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Students</label>
+                <input
+                  type="number"
+                  name="editStudents"
+                  min="0"
+                  [(ngModel)]="editDraft.students"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Location</label>
+              <input
+                type="text"
+                name="editLocation"
+                [(ngModel)]="editDraft.location"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div class="flex flex-wrap gap-2 pt-4 border-t border-slate-600/60">
+              <button
+                type="submit"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+                Save changes
+              </button>
+              <button
+                type="button"
+                (click)="closeEditModal()"
+                class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showAssignStaffModal) {
+    <div
+      class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="assign-staff-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeAssignStaffModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="assign-staff-modal-title" class="text-lg font-semibold text-emerald-400">Assign</h2>
+          <button
+            type="button"
+            (click)="closeAssignStaffModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5 overflow-y-auto flex-1 min-h-0">
+          <p class="text-slate-500 text-xs mb-1">
+            Department <span class="font-mono text-emerald-400/90">{{ assignDeptId }}</span>
+          </p>
+          <p class="text-slate-500 text-xs mb-4">
+            Select people from <code class="text-slate-400">public/data/staff.json</code>. IDs are stored on the
+            department record.
+          </p>
+          @if (assignFormError) {
+            <div
+              class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+              role="alert">
+              {{ assignFormError }}
+            </div>
+          }
+          @if (appUsers().length === 0) {
+            <p class="text-slate-500 text-sm">No staff loaded. Open the Staff page or ensure staff.json is available.</p>
+          } @else {
+            <ul class="space-y-2 border border-slate-600/60 rounded-lg p-3 bg-slate-900/40 max-h-[45vh] overflow-y-auto">
+              @for (u of appUsers(); track u.id) {
+                <li>
+                  <label
+                    class="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-slate-700/40 transition">
+                    <input
+                      type="checkbox"
+                      class="mt-1 rounded border-slate-500 text-emerald-600 focus:ring-emerald-500/50"
+                      [checked]="isStaffIdSelected(u.id)"
+                      (change)="toggleAssignStaffId(u.id)" />
+                    <span class="min-w-0 flex-1 text-sm">
+                      <span class="text-slate-200 font-medium">{{ u.displayName }}</span>
+                      <span class="block text-xs text-slate-500 font-mono">{{ u.id }} · {{ u.email }}</span>
+                    </span>
+                  </label>
+                </li>
+              }
+            </ul>
+          }
+          <div class="flex flex-wrap gap-2 pt-5 mt-2 border-t border-slate-600/60">
+            <button
+              type="button"
+              (click)="saveAssignStaff()"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+              Save assignments
+            </button>
+            <button
+              type="button"
+              (click)="closeAssignStaffModal()"
+              class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showAssignStudentsModal) {
+    <div
+      class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="assign-students-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeAssignStudentsModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="assign-students-modal-title" class="text-lg font-semibold text-emerald-400">Assign students</h2>
+          <button
+            type="button"
+            (click)="closeAssignStudentsModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5 overflow-y-auto flex-1 min-h-0">
+          <p class="text-slate-500 text-xs mb-1">
+            Department <span class="font-mono text-emerald-400/90">{{ assignStudentsDeptId }}</span>
+          </p>
+          <p class="text-slate-500 text-xs mb-4">
+            Select learners from <code class="text-slate-400">public/data/students.json</code>. IDs are stored on the
+            department record.
+          </p>
+          @if (assignStudentsFormError) {
+            <div
+              class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+              role="alert">
+              {{ assignStudentsFormError }}
+            </div>
+          }
+          @if (students().length === 0) {
+            <p class="text-slate-500 text-sm">No students loaded. Open the Students page or ensure students.json is available.</p>
+          } @else {
+            <ul class="space-y-2 border border-slate-600/60 rounded-lg p-3 bg-slate-900/40 max-h-[45vh] overflow-y-auto">
+              @for (stu of students(); track stu.id) {
+                <li>
+                  <label
+                    class="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-slate-700/40 transition">
+                    <input
+                      type="checkbox"
+                      class="mt-1 rounded border-slate-500 text-emerald-600 focus:ring-emerald-500/50"
+                      [checked]="isStudentIdSelected(stu.id)"
+                      (change)="toggleAssignStudentId(stu.id)" />
+                    <span class="min-w-0 flex-1 text-sm">
+                      <span class="text-slate-200 font-medium">{{ stu.displayName }}</span>
+                      <span class="block text-xs text-slate-500 font-mono">{{ stu.id }} · {{ stu.gender }}</span>
+                    </span>
+                  </label>
+                </li>
+              }
+            </ul>
+          }
+          <div class="flex flex-wrap gap-2 pt-5 mt-2 border-t border-slate-600/60">
+            <button
+              type="button"
+              (click)="saveAssignStudents()"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+              Save assignments
+            </button>
+            <button
+              type="button"
+              (click)="closeAssignStudentsModal()"
+              class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

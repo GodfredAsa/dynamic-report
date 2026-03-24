@@ -1,0 +1,20 @@
+[
+  {
+    "id": "fee-2",
+    "date": "2026-03-24",
+    "type": "Classes",
+    "amount": 80,
+    "currency": "GHS",
+    "addedByName": "ISAAC ABBEY",
+    "addedByEmail": "i.abbey@dynamic.com"
+  },
+  {
+    "id": "fee-1",
+    "date": "2026-03-24",
+    "type": "Termly money",
+    "amount": 100,
+    "currency": "GHS",
+    "addedByName": "ISAAC ABBEY",
+    "addedByEmail": "i.abbey@dynamic.com"
+  }
+]
