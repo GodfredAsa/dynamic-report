@@ -32,7 +32,7 @@ export class ModulesComponent {
     {
       title: 'Students',
       description:
-        'Add and edit learners with guardian contact (name and phone) and gender; data in students.json.',
+        'Add and edit learners with guardian contact; assign students to class groups; data in students.json and departments.json.',
       iconClass: 'fa-solid fa-user-graduate',
       route: '/students',
     },

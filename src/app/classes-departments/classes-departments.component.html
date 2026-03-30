@@ -37,9 +37,17 @@
     </div>
   }
 
-  <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8 mb-6">
+  <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <summary class="w-full flex items-center justify-between gap-3 px-6 py-4 cursor-pointer list-none hover:bg-slate-800/40 transition">
+      <div class="min-w-0">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Departments</h2>
+        <p class="text-slate-500 text-xs mt-0.5">Add or import departments, reload from disk, export JSON</p>
+      </div>
+      <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0" aria-hidden="true"></i>
+    </summary>
+    <div class="p-6 md:p-8">
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-600/60">
-      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Departments</h2>
+      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Department data</h2>
       <div class="flex flex-wrap gap-2">
         <button
           type="button"
@@ -65,11 +73,10 @@
         <h3 class="text-slate-200 font-medium text-sm mb-4">Add department</h3>
         <p class="text-slate-500 text-xs mb-4">
           <code class="text-slate-400">id</code> is generated automatically (<span class="text-slate-400">DEPT-01</span>,
-          <span class="text-slate-400">DEPT-02</span>, …). Other fields match the JSON export:
-          <code class="text-slate-400">name</code>, <code class="text-slate-400">head</code>,
-          <code class="text-slate-400">members</code>, <code class="text-slate-400">students</code>,
-          <code class="text-slate-400">location</code>, <code class="text-slate-400">status</code>.
-          Imported rows may still use custom ids (e.g. <code class="text-slate-400">SCI-04</code>).
+          …). <strong class="text-slate-400">Name</strong> must be unique. Choose the
+          <strong class="text-slate-400">head</strong> from staff in
+          <code class="text-slate-400">staff.json</code>. New departments always start with <strong class="text-slate-400">no classes</strong> — use the
+          <strong class="text-slate-400">Classes</strong> section after saving.
         </p>
         @if (formError) {
           <div
@@ -79,19 +86,6 @@
           </div>
         }
         <form (ngSubmit)="addDepartment()" class="space-y-3">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="sm:col-span-2">
-              <label class="block text-xs text-slate-400 mb-1">Status</label>
-              <select
-                name="status"
-                [(ngModel)]="draft.status"
-                class="input-field w-full sm:max-w-xs bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Archived">Archived</option>
-              </select>
-            </div>
-          </div>
           <div>
             <label class="block text-xs text-slate-400 mb-1">Name <span class="text-red-400">*</span></label>
             <input
@@ -99,52 +93,29 @@
               name="name"
               [(ngModel)]="draft.name"
               class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
-              placeholder="Department name" />
+              placeholder="Unique department name" />
           </div>
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Head</label>
+            <label class="block text-xs text-slate-400 mb-1">Department head <span class="text-red-400">*</span></label>
             <select
-              name="head"
-              [(ngModel)]="draft.head"
+              name="headStaffId"
+              [(ngModel)]="draft.headStaffId"
               class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
-              <option value="">— No head selected —</option>
+              <option value="">— Choose a staff user —</option>
               @for (u of appUsers(); track u.id) {
-                <option [value]="u.displayName">{{ u.displayName }} ({{ u.email }})</option>
+                <option [value]="u.id">{{ u.displayName }} ({{ u.email }})</option>
               }
             </select>
-            <p class="text-slate-500 text-xs mt-1.5">
-              Names come from <code class="text-slate-400">public/data/staff.json</code> (reload the Staff page or app
-              after editing that file). Department records still store the head as a plain name string.
-            </p>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Members</label>
-              <input
-                type="number"
-                name="members"
-                min="0"
-                [(ngModel)]="draft.members"
-                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
-            </div>
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Students</label>
-              <input
-                type="number"
-                name="students"
-                min="0"
-                [(ngModel)]="draft.students"
-                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
-            </div>
+            <p class="text-slate-500 text-xs mt-1.5">Staff list comes from <code class="text-slate-400">public/data/staff.json</code>.</p>
           </div>
           <div>
-            <label class="block text-xs text-slate-400 mb-1">Location</label>
-            <input
-              type="text"
-              name="location"
-              [(ngModel)]="draft.location"
-              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
-              placeholder="e.g. West Wing, Floor 3" />
+            <label class="block text-xs text-slate-400 mb-1">Description <span class="text-red-400">*</span></label>
+            <textarea
+              name="description"
+              rows="3"
+              [(ngModel)]="draft.description"
+              placeholder="What this department covers, notes for staff, etc."
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50 resize-y min-h-[4.5rem]"></textarea>
           </div>
           <div class="flex flex-wrap gap-2 pt-2">
             <button
@@ -190,26 +161,107 @@
       </div>
     </div>
   </div>
+  </details>
 
-  <div class="rounded-xl border border-slate-600/80 bg-slate-800/40 overflow-hidden">
-    <div class="px-4 py-3 border-b border-slate-600/60 text-slate-300 text-sm font-medium">
-      Saved departments ({{ departments().length }})
+  <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <summary class="w-full flex items-center justify-between gap-3 px-6 py-4 cursor-pointer list-none hover:bg-slate-800/40 transition">
+      <div class="min-w-0">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Classes</h2>
+        <p class="text-slate-500 text-xs mt-0.5">Attach class groups to departments (e.g. Form 1 A)</p>
+      </div>
+      <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0" aria-hidden="true"></i>
+    </summary>
+    <div class="p-6 md:p-8">
+      <div class="rounded-lg border border-slate-600/60 bg-slate-900/25 px-4 py-5">
+        <h3 class="text-slate-200 font-medium text-sm mb-2">Assign class to department</h3>
+        <p class="text-slate-500 text-xs mb-4">
+          Add one class group at a time (e.g. <span class="text-slate-400">Form 2 Gold</span>). The department must already exist in
+          <strong class="text-slate-400">Saved departments</strong> (section below).
+        </p>
+        @if (assignClassError) {
+          <div
+            class="mb-3 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+            role="alert">
+            {{ assignClassError }}
+          </div>
+        }
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div class="md:col-span-1">
+            <label class="block text-xs text-slate-400 mb-1">Department</label>
+            <select
+              name="assignClassDeptId"
+              [(ngModel)]="assignClassDeptId"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+              <option value="">— Select —</option>
+              @for (d of departments(); track d.id) {
+                <option [value]="d.id">{{ d.name }} ({{ d.id }})</option>
+              }
+            </select>
+          </div>
+          <div class="md:col-span-1">
+            <label class="block text-xs text-slate-400 mb-1">Class name</label>
+            <input
+              type="text"
+              name="assignClassName"
+              [(ngModel)]="assignClassName"
+              placeholder="e.g. Form 1 A"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+          </div>
+          <div class="md:col-span-1">
+            <button
+              type="button"
+              (click)="submitAssignClass()"
+              class="w-full md:w-auto px-4 py-2 bg-[#069668] hover:bg-[#058559] text-white rounded-lg text-sm font-medium transition">
+              Add class
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <summary class="w-full flex items-center justify-between gap-3 px-6 py-4 cursor-pointer list-none hover:bg-slate-800/40 transition">
+      <div class="min-w-0">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Saved departments</h2>
+        <p class="text-slate-500 text-xs mt-0.5">
+          {{ departments().length }} on file — view, update, assign staff and students
+        </p>
+      </div>
+      <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0" aria-hidden="true"></i>
+    </summary>
+    <div class="border-t border-slate-600/60 bg-slate-800/40 overflow-hidden">
+    <div class="px-4 py-3 border-b border-slate-600/60 flex flex-wrap items-center justify-between gap-3">
+      <p class="text-slate-300 text-sm font-medium">All departments</p>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          (click)="reloadDepartmentsFromFile()"
+          class="px-3 py-1.5 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-xs font-medium transition">
+          <i class="fa-solid fa-rotate mr-1.5" aria-hidden="true"></i>Reload from file
+        </button>
+        <button
+          type="button"
+          (click)="exportJson()"
+          class="px-3 py-1.5 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-xs font-medium transition">
+          <i class="fa-solid fa-download mr-1.5" aria-hidden="true"></i>Download JSON
+        </button>
+      </div>
     </div>
     <div class="overflow-x-auto">
       @if (departments().length === 0) {
-        <p class="p-8 text-center text-slate-500 text-sm">No departments yet. Add one above or import JSON.</p>
+        <p class="p-8 text-center text-slate-500 text-sm">No departments yet. Use the <strong class="text-slate-400">Departments</strong> section above to add or import.</p>
       } @else {
         <table class="w-full text-left text-sm text-slate-300">
           <thead class="bg-slate-800/80 text-xs uppercase text-slate-400">
             <tr>
               <th class="px-4 py-3 font-medium">ID</th>
               <th class="px-4 py-3 font-medium">Name</th>
+              <th class="px-4 py-3 font-medium min-w-[10rem]">Description</th>
               <th class="px-4 py-3 font-medium">Head</th>
+              <th class="px-4 py-3 font-medium min-w-[12rem]">Classes</th>
               <th class="px-4 py-3 font-medium min-w-[8rem]">Assigned staff</th>
               <th class="px-4 py-3 font-medium min-w-[8rem]">Assigned students</th>
-              <th class="px-4 py-3 font-medium text-right">Members</th>
-              <th class="px-4 py-3 font-medium text-right">Students</th>
-              <th class="px-4 py-3 font-medium">Location</th>
               <th class="px-4 py-3 font-medium">Status</th>
               <th class="px-4 py-3 font-medium min-w-[14rem] text-right">Actions</th>
             </tr>
@@ -219,7 +271,31 @@
               <tr class="hover:bg-slate-800/40">
                 <td class="px-4 py-3 font-mono text-emerald-400/90">{{ d.id }}</td>
                 <td class="px-4 py-3">{{ d.name }}</td>
-                <td class="px-4 py-3">{{ d.head || '—' }}</td>
+                <td class="px-4 py-3 text-slate-400 text-xs max-w-[14rem] align-top line-clamp-3" [attr.title]="d.description">
+                  {{ d.description || '—' }}
+                </td>
+                <td class="px-4 py-3">{{ departmentHeadLabel(d) }}</td>
+                <td class="px-4 py-3 text-slate-400 text-xs align-top max-w-[16rem]">
+                  @if (d.classes.length === 0) {
+                    <span class="text-slate-600">—</span>
+                  } @else {
+                    <div class="flex flex-wrap gap-1">
+                      @for (c of d.classes; track c.id) {
+                        <span
+                          class="inline-flex items-center gap-1 rounded-md bg-slate-700/70 border border-slate-600/70 px-1.5 py-0.5 text-[11px] text-slate-200">
+                          {{ c.name }}
+                          <button
+                            type="button"
+                            (click)="removeDepartmentClass(d, c.id)"
+                            class="text-red-400 hover:text-red-300 font-semibold leading-none"
+                            [attr.title]="'Remove ' + c.name">
+                            ×
+                          </button>
+                        </span>
+                      }
+                    </div>
+                  }
+                </td>
                 <td
                   class="px-4 py-3 text-slate-400 text-xs max-w-[12rem] truncate align-top"
                   [attr.title]="assignedStaffSummary(d)">
@@ -230,9 +306,6 @@
                   [attr.title]="assignedStudentsSummary(d)">
                   {{ assignedStudentsSummary(d) }}
                 </td>
-                <td class="px-4 py-3 text-right tabular-nums">{{ d.members }}</td>
-                <td class="px-4 py-3 text-right tabular-nums">{{ d.students }}</td>
-                <td class="px-4 py-3 text-slate-400">{{ d.location || '—' }}</td>
                 <td class="px-4 py-3">
                   <span
                     [class]="
@@ -246,26 +319,32 @@
                 <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
                   <button
                     type="button"
+                    (click)="openViewModal(d)"
+                    class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                    View
+                  </button>
+                  <button
+                    type="button"
+                    (click)="openEditModal(d)"
+                    class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                    Update
+                  </button>
+                  <button
+                    type="button"
                     (click)="openAssignStaffModal(d)"
-                    class="text-[#D4AF37] hover:brightness-110 text-xs font-medium transition">
+                    class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
                     Staff
                   </button>
                   <button
                     type="button"
                     (click)="openAssignStudentsModal(d)"
-                    class="text-sky-400 hover:text-sky-300 text-xs font-medium transition">
+                    class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
                     Students
                   </button>
                   <button
                     type="button"
-                    (click)="openEditModal(d)"
-                    class="text-[#03AED2] hover:opacity-80 text-xs font-medium transition">
-                    Edit
-                  </button>
-                  <button
-                    type="button"
                     (click)="removeDepartment(d.id)"
-                    class="text-red-400 hover:text-red-300 text-xs font-medium">
+                    class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
                     Remove
                   </button>
                 </td>
@@ -275,7 +354,8 @@
         </table>
       }
     </div>
-  </div>
+    </div>
+  </details>
 
   <p class="text-center mt-8">
     <a
@@ -284,6 +364,129 @@
       ← Back to modules
     </a>
   </p>
+
+  @if (showDepartmentViewModal) {
+    <div
+      class="fixed inset-0 z-[55] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dept-view-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeViewModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        @if (viewDepartment(); as vd) {
+          <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+            <h2 id="dept-view-modal-title" class="text-lg font-semibold text-emerald-400">Department details</h2>
+            <button
+              type="button"
+              (click)="closeViewModal()"
+              class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+              aria-label="Close">
+              <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="p-5 space-y-4 text-sm text-slate-300">
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">ID</dt>
+                <dd class="font-mono text-emerald-400/90 mt-0.5">{{ vd.id }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Name</dt>
+                <dd class="text-slate-200 mt-0.5">{{ vd.name }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Description</dt>
+                <dd class="text-slate-400 mt-0.5 whitespace-pre-wrap">{{ vd.description || '—' }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Head</dt>
+                <dd class="mt-0.5">
+                  <span class="text-slate-200">{{ departmentHeadLabel(vd) }}</span>
+                  @if (departmentHeadEmail(vd)) {
+                    <span class="block text-xs text-slate-500 mt-0.5">{{ departmentHeadEmail(vd) }}</span>
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Status</dt>
+                <dd class="mt-0.5">
+                  <span
+                    [class]="
+                      vd.status === 'Active'
+                        ? 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-emerald-900/40 text-emerald-300'
+                        : 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-400'
+                    ">
+                    {{ vd.status }}
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Classes</dt>
+                <dd class="mt-0.5">
+                  @if (vd.classes.length === 0) {
+                    <span class="text-slate-600">—</span>
+                  } @else {
+                    <ul class="list-disc list-inside text-slate-400 space-y-0.5">
+                      @for (c of vd.classes; track c.id) {
+                        <li><span class="font-mono text-[11px] text-slate-500">{{ c.id }}</span> — {{ c.name }}</li>
+                      }
+                    </ul>
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Assigned staff</dt>
+                <dd class="text-slate-400 mt-0.5">{{ assignedStaffSummary(vd) }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Assigned students</dt>
+                <dd class="text-slate-400 mt-0.5">{{ assignedStudentsSummary(vd) }}</dd>
+              </div>
+            </dl>
+            <div class="flex flex-wrap gap-2 pt-4 border-t border-slate-600/60">
+              <button
+                type="button"
+                (click)="openUpdateFromView()"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+                Update department
+              </button>
+              <button
+                type="button"
+                (click)="closeViewModal()"
+                class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+                Close
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+            <h2 id="dept-view-modal-title" class="text-lg font-semibold text-slate-400">Department</h2>
+            <button
+              type="button"
+              (click)="closeViewModal()"
+              class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+              aria-label="Close">
+              <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="p-5 text-sm text-slate-400">
+            <p>This department is no longer in the list.</p>
+            <button
+              type="button"
+              (click)="closeViewModal()"
+              class="mt-4 px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+              Close
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
 
   @if (showDepartmentModal) {
     <div
@@ -321,6 +524,38 @@
           }
           <form (ngSubmit)="saveDepartmentEdit()" class="space-y-3">
             <div>
+              <label class="block text-xs text-slate-400 mb-1">Name <span class="text-red-400">*</span></label>
+              <input
+                type="text"
+                name="editName"
+                [(ngModel)]="editDraft.name"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Department head <span class="text-red-400">*</span></label>
+              <select
+                name="editHeadStaffId"
+                [(ngModel)]="editDraft.headStaffId"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="">— Choose a staff user —</option>
+                @for (u of appUsers(); track u.id) {
+                  <option [value]="u.id">{{ u.displayName }} ({{ u.email }})</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Description <span class="text-red-400">*</span></label>
+              <textarea
+                name="editDescription"
+                rows="3"
+                [(ngModel)]="editDraft.description"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50 resize-y min-h-[4.5rem]"></textarea>
+            </div>
+            <p class="text-slate-500 text-[10px]">
+              Classes are managed in <strong class="text-slate-400">Classes</strong> and the list in
+              <strong class="text-slate-400">Saved departments</strong> (remove with ×).
+            </p>
+            <div>
               <label class="block text-xs text-slate-400 mb-1">Status</label>
               <select
                 name="editStatus"
@@ -330,54 +565,6 @@
                 <option value="Inactive">Inactive</option>
                 <option value="Archived">Archived</option>
               </select>
-            </div>
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Name <span class="text-red-400">*</span></label>
-              <input
-                type="text"
-                name="editName"
-                [(ngModel)]="editDraft.name"
-                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
-            </div>
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Head</label>
-              <select
-                name="editHead"
-                [(ngModel)]="editDraft.head"
-                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
-                <option value="">— No head selected —</option>
-                @for (u of appUsers(); track u.id) {
-                  <option [value]="u.displayName">{{ u.displayName }} ({{ u.email }})</option>
-                }
-              </select>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs text-slate-400 mb-1">Members</label>
-                <input
-                  type="number"
-                  name="editMembers"
-                  min="0"
-                  [(ngModel)]="editDraft.members"
-                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
-              </div>
-              <div>
-                <label class="block text-xs text-slate-400 mb-1">Students</label>
-                <input
-                  type="number"
-                  name="editStudents"
-                  min="0"
-                  [(ngModel)]="editDraft.students"
-                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs text-slate-400 mb-1">Location</label>
-              <input
-                type="text"
-                name="editLocation"
-                [(ngModel)]="editDraft.location"
-                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
             </div>
             <div class="flex flex-wrap gap-2 pt-4 border-t border-slate-600/60">
               <button

@@ -18,6 +18,7 @@ const STUDENTS_FILE = path.join(ROOT, 'public', 'data', 'students.json');
 const TERM_FEES_FILE = path.join(ROOT, 'public', 'data', 'term-fees.json');
 const DAILY_FEEDING_FILE = path.join(ROOT, 'public', 'data', 'daily-feeding.json');
 const FEES_FILE = path.join(ROOT, 'public', 'data', 'fees.json');
+const FEES_USAGE_FILE = path.join(ROOT, 'public', 'data', 'fees-usage.json');
 
 const PORT = Number(process.env.SCHOOL_DATA_API_PORT || 4310);
 
@@ -173,6 +174,28 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (req.method === 'POST' && req.url.startsWith('/api/fees-usage')) {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
+    req.on('end', () => {
+      try {
+        const json = JSON.parse(body);
+        if (!Array.isArray(json)) {
+          sendJson(res, 400, { error: 'Body must be a JSON array of fee usage records' });
+          return;
+        }
+        fs.mkdirSync(path.dirname(FEES_USAGE_FILE), { recursive: true });
+        fs.writeFileSync(FEES_USAGE_FILE, `${JSON.stringify(json, null, 2)}\n`, 'utf8');
+        sendJson(res, 200, { ok: true });
+      } catch (e) {
+        sendJson(res, 500, { error: String(e) });
+      }
+    });
+    return;
+  }
+
   sendJson(res, 404, { error: 'Not found' });
 });
 
@@ -184,4 +207,5 @@ server.listen(PORT, () => {
   console.log(`  POST /api/term-fees → ${TERM_FEES_FILE}`);
   console.log(`  POST /api/daily-feeding → ${DAILY_FEEDING_FILE}`);
   console.log(`  POST /api/fees → ${FEES_FILE}`);
+  console.log(`  POST /api/fees-usage → ${FEES_USAGE_FILE}`);
 });

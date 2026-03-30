@@ -71,6 +71,8 @@ ng serve           # terminal 2
 
 The app reloads when you change source files. Saving entities that use the API (students, staff, departments, fees, etc.) requires the data API to be running.
 
+If you run `npm run build` (or `npm run watch`) while `ng serve` is already running, the app will also **start the data API automatically** (if it is not running yet) to keep save-to-JSON working.
+
 ---
 
 ## School manager plan

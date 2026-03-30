@@ -3,7 +3,13 @@ import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Department, DepartmentInput, normalizeDepartment } from './department.model';
+import {
+  Department,
+  DepartmentClass,
+  DepartmentInput,
+  normalizeDepartment,
+  toDepartmentInput,
+} from './department.model';
 
 /**
  * Departments: read from `public/data/departments.json` (`GET /data/departments.json`).
@@ -84,9 +90,42 @@ export class DepartmentStoreService {
     return { ok: true };
   }
 
+  /** Case-insensitive unique name among all departments. */
+  isNameTaken(name: string, excludeDepartmentId?: string): boolean {
+    const key = name.trim().toLowerCase();
+    if (!key) return false;
+    const ex = excludeDepartmentId?.trim();
+    return this.departments().some(
+      (d) => d.id !== ex && d.name.trim().toLowerCase() === key,
+    );
+  }
+
   add(input: DepartmentInput): { ok: true } | { ok: false; error: string } {
+    const name = String(input.name ?? '').trim();
+    if (!name) return { ok: false, error: 'Department name is required.' };
+    if (this.isNameTaken(name)) {
+      return { ok: false, error: 'A department with this name already exists.' };
+    }
+    if (!(input.headStaffId ?? '').trim()) {
+      return { ok: false, error: 'Department head is required — choose a staff user.' };
+    }
+    if (!(input.description ?? '').trim()) {
+      return { ok: false, error: 'Description is required.' };
+    }
+    if ((input.classes?.length ?? 0) > 0) {
+      return {
+        ok: false,
+        error: 'New departments must start with no classes. Save the department first, then use Assign class.',
+      };
+    }
     const id = this.nextUniqueId();
-    const d = normalizeDepartment({ ...input, id });
+    const d = normalizeDepartment({
+      ...input,
+      id,
+      classes: [],
+      head: String(input.head ?? '').trim(),
+      headStaffId: String(input.headStaffId ?? '').trim(),
+    });
     if (!d.name) return { ok: false, error: 'Department name is required.' };
     this.departments.update((list) => [...list, d]);
     return { ok: true };
@@ -110,6 +149,33 @@ export class DepartmentStoreService {
   /**
    * Add a student id to a department’s `assignedStudentIds` (no-op duplicate is an error).
    */
+  /**
+   * Add a student id to a class’s roster within a department (no-op duplicate is an error).
+   */
+  addStudentToClass(
+    deptId: string,
+    classId: string,
+    studentId: string,
+  ): { ok: true } | { ok: false; error: string } {
+    const d = this.departments().find((x) => x.id === deptId.trim());
+    if (!d) return { ok: false, error: 'Department not found.' };
+    const cid = classId.trim();
+    const sid = studentId.trim();
+    if (!cid) return { ok: false, error: 'Pick a class.' };
+    if (!sid) return { ok: false, error: 'Pick a student.' };
+    const cls = d.classes.find((c) => c.id === cid);
+    if (!cls) return { ok: false, error: 'Class not found on this department.' };
+    const cur = [...(cls.assignedStudentIds ?? [])];
+    if (cur.includes(sid)) {
+      return { ok: false, error: 'This student is already assigned to this class.' };
+    }
+    cur.push(sid);
+    const nextClasses = d.classes.map((c) =>
+      c.id === cid ? { ...c, assignedStudentIds: cur } : { ...c },
+    );
+    return this.update(d.id, { ...toDepartmentInput(d), classes: nextClasses });
+  }
+
   addStudentToDepartment(
     deptId: string,
     studentId: string,
@@ -124,13 +190,7 @@ export class DepartmentStoreService {
     }
     cur.push(sid);
     const input: DepartmentInput = {
-      name: d.name,
-      head: d.head,
-      members: d.members,
-      students: d.students,
-      location: d.location,
-      status: d.status,
-      assignedStaffIds: [...(d.assignedStaffIds ?? [])],
+      ...toDepartmentInput(d),
       assignedStudentIds: cur,
     };
     return this.update(deptId, input);
@@ -141,6 +201,17 @@ export class DepartmentStoreService {
     const list = this.departments();
     const idx = list.findIndex((d) => d.id === trimmedId);
     if (idx < 0) return { ok: false, error: 'Department not found.' };
+    const name = String(input.name ?? '').trim();
+    if (!name) return { ok: false, error: 'Department name is required.' };
+    if (this.isNameTaken(name, trimmedId)) {
+      return { ok: false, error: 'A department with this name already exists.' };
+    }
+    if (!(input.headStaffId ?? '').trim()) {
+      return { ok: false, error: 'Department head is required — choose a staff user.' };
+    }
+    if (!(input.description ?? '').trim()) {
+      return { ok: false, error: 'Description is required.' };
+    }
     const d = normalizeDepartment({ ...input, id: trimmedId });
     if (!d.name) return { ok: false, error: 'Department name is required.' };
     this.departments.update((cur) => {
@@ -149,6 +220,56 @@ export class DepartmentStoreService {
       return next;
     });
     return { ok: true };
+  }
+
+  private nextClassIdForDepartment(deptId: string, existing: DepartmentClass[]): string {
+    const safe = deptId.replace(/[^a-zA-Z0-9-_]/g, '');
+    const prefix = `class-${safe}-`;
+    const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`^${escapedPrefix}(\\d+)$`);
+    let max = 0;
+    for (const c of existing) {
+      const m = re.exec(c.id);
+      if (m) max = Math.max(max, parseInt(m[1], 10));
+    }
+    let n = max + 1;
+    const taken = new Set(existing.map((c) => c.id));
+    for (;;) {
+      const cid = `${prefix}${String(n).padStart(2, '0')}`;
+      if (!taken.has(cid)) return cid;
+      n++;
+    }
+  }
+
+  addClassToDepartment(
+    deptId: string,
+    classNameRaw: string,
+  ): { ok: true } | { ok: false; error: string } {
+    const name = classNameRaw.trim();
+    if (!name) return { ok: false, error: 'Class name is required.' };
+    const d = this.departments().find((x) => x.id === deptId.trim());
+    if (!d) return { ok: false, error: 'Department not found.' };
+    const key = name.toLowerCase();
+    if (d.classes.some((c) => c.name.trim().toLowerCase() === key)) {
+      return { ok: false, error: 'This class is already assigned to the department.' };
+    }
+    const classId = this.nextClassIdForDepartment(d.id, d.classes);
+    const nextClasses = [...d.classes, { id: classId, name, assignedStudentIds: [] }];
+    return this.update(d.id, { ...toDepartmentInput(d), classes: nextClasses });
+  }
+
+  removeClassFromDepartment(
+    deptId: string,
+    classId: string,
+  ): { ok: true } | { ok: false; error: string } {
+    const d = this.departments().find((x) => x.id === deptId.trim());
+    if (!d) return { ok: false, error: 'Department not found.' };
+    const cid = classId.trim();
+    const nextClasses = d.classes.filter((c) => c.id !== cid);
+    if (nextClasses.length === d.classes.length) {
+      return { ok: false, error: 'Class not found on this department.' };
+    }
+    return this.update(d.id, { ...toDepartmentInput(d), classes: nextClasses });
   }
 
   replaceAll(list: Department[]): void {

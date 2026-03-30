@@ -4,9 +4,9 @@
     "displayName": "Abi Administrator",
     "email": "abi@dynamic.com",
     "password": "1234",
-    "cardNumber": "",
-    "cardType": "GHANA-CARD",
-    "staffCategory": "non-teaching"
+    "cardNumber": "7876567890",
+    "cardType": "VOTERS CARD",
+    "staffCategory": "teaching"
   },
   {
     "id": "usr-2",

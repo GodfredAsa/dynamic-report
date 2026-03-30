@@ -6,7 +6,7 @@ import { AuthService } from '../auth/auth.service';
 import { DepartmentStoreService } from '../data/department-store.service';
 import { AppUserStoreService } from '../data/app-user-store.service';
 import { StudentStoreService } from '../data/student-store.service';
-import { Department, DepartmentInput } from '../data/department.model';
+import { Department, DepartmentInput, toDepartmentInput } from '../data/department.model';
 
 @Component({
   selector: 'app-classes-departments',
@@ -29,9 +29,12 @@ export class ClassesDepartmentsComponent {
   readonly sampleDepartment: DepartmentInput = {
     name: 'Natural Sciences',
     head: 'Dr. Sarah Jenkins',
-    members: 18,
-    students: 420,
-    location: 'West Wing, Floor 3',
+    headStaffId: 'usr-2',
+    description: 'Science labs and curriculum (sample).',
+    classes: [],
+    members: 0,
+    students: 0,
+    location: '',
     status: 'Active',
     assignedStaffIds: [],
     assignedStudentIds: [],
@@ -43,10 +46,18 @@ export class ClassesDepartmentsComponent {
   importMessage = '';
   private importFile: File | null = null;
 
+  assignClassDeptId = '';
+  assignClassName = '';
+  assignClassError = '';
+
   showDepartmentModal = false;
   editId = '';
   editDraft: DepartmentInput = this.emptyDraft();
   editFormError = '';
+
+  /** Read-only department detail dialog */
+  showDepartmentViewModal = false;
+  viewDeptId = '';
 
   showAssignStaffModal = false;
   assignDeptId = '';
@@ -62,6 +73,9 @@ export class ClassesDepartmentsComponent {
     return {
       name: '',
       head: '',
+      headStaffId: '',
+      description: '',
+      classes: [],
       members: 0,
       students: 0,
       location: '',
@@ -71,17 +85,41 @@ export class ClassesDepartmentsComponent {
     };
   }
 
-  private departmentToInput(d: Department): DepartmentInput {
-    return {
-      name: d.name,
-      head: d.head,
-      members: d.members,
-      students: d.students,
-      location: d.location,
-      status: d.status,
-      assignedStaffIds: [...d.assignedStaffIds],
-      assignedStudentIds: [...(d.assignedStudentIds ?? [])],
-    };
+  departmentHeadLabel(d: Department): string {
+    if (d.headStaffId) {
+      const u = this.appUserStore.users().find((x) => x.id === d.headStaffId);
+      if (u) return u.displayName;
+    }
+    return d.head || '—';
+  }
+
+  departmentHeadEmail(d: Department): string {
+    if (d.headStaffId) {
+      const u = this.appUserStore.users().find((x) => x.id === d.headStaffId);
+      if (u) return u.email;
+    }
+    return '';
+  }
+
+  /** Current department for the view modal (live from store). */
+  viewDepartment(): Department | undefined {
+    return this.departmentsStore.departments().find((x) => x.id === this.viewDeptId);
+  }
+
+  openViewModal(d: Department): void {
+    this.viewDeptId = d.id;
+    this.showDepartmentViewModal = true;
+  }
+
+  closeViewModal(): void {
+    this.showDepartmentViewModal = false;
+    this.viewDeptId = '';
+  }
+
+  openUpdateFromView(): void {
+    const d = this.viewDepartment();
+    this.closeViewModal();
+    if (d) this.openEditModal(d);
   }
 
   /** Short label for table: names from staff.json by id. */
@@ -95,10 +133,14 @@ export class ClassesDepartmentsComponent {
   }
 
   assignedStudentsSummary(d: Department): string {
-    const ids = d.assignedStudentIds ?? [];
-    if (ids.length === 0) return '—';
+    const idSet = new Set<string>();
+    for (const id of d.assignedStudentIds ?? []) idSet.add(id);
+    for (const c of d.classes ?? []) {
+      for (const id of c.assignedStudentIds ?? []) idSet.add(id);
+    }
+    if (idSet.size === 0) return '—';
     const list = this.studentStore.students();
-    return ids
+    return [...idSet]
       .map((id) => list.find((s) => s.id === id)?.displayName ?? id)
       .join(', ');
   }
@@ -137,7 +179,7 @@ export class ClassesDepartmentsComponent {
       return;
     }
     const input: DepartmentInput = {
-      ...this.departmentToInput(d),
+      ...toDepartmentInput(d),
       assignedStaffIds: [...this.assignSelectedStaffIds],
     };
     const before = this.snapshotDepartments();
@@ -189,7 +231,7 @@ export class ClassesDepartmentsComponent {
       return;
     }
     const input: DepartmentInput = {
-      ...this.departmentToInput(d),
+      ...toDepartmentInput(d),
       assignedStudentIds: [...this.assignSelectedStudentIds],
     };
     const before = this.snapshotDepartments();
@@ -219,7 +261,19 @@ export class ClassesDepartmentsComponent {
   async addDepartment(): Promise<void> {
     this.formError = '';
     const before = this.snapshotDepartments();
-    const result = this.departmentsStore.add(this.draft);
+    const headId = this.draft.headStaffId.trim();
+    const headUser = this.appUserStore.users().find((u) => u.id === headId);
+    if (!headUser) {
+      this.formError = 'Choose a department head from the staff list.';
+      return;
+    }
+    const payload: DepartmentInput = {
+      ...this.draft,
+      head: headUser.displayName,
+      headStaffId: headId,
+      classes: [],
+    };
+    const result = this.departmentsStore.add(payload);
     if (!result.ok) {
       this.formError = result.error;
       return;
@@ -235,7 +289,7 @@ export class ClassesDepartmentsComponent {
 
   openEditModal(d: Department): void {
     this.editId = d.id;
-    this.editDraft = this.departmentToInput(d);
+    this.editDraft = toDepartmentInput(d);
     this.editFormError = '';
     this.showDepartmentModal = true;
   }
@@ -250,7 +304,18 @@ export class ClassesDepartmentsComponent {
   async saveDepartmentEdit(): Promise<void> {
     this.editFormError = '';
     const before = this.snapshotDepartments();
-    const result = this.departmentsStore.update(this.editId, this.editDraft);
+    const headId = this.editDraft.headStaffId.trim();
+    const headUser = this.appUserStore.users().find((u) => u.id === headId);
+    if (!headUser) {
+      this.editFormError = 'Choose a department head from the staff list.';
+      return;
+    }
+    const payload: DepartmentInput = {
+      ...this.editDraft,
+      head: headUser.displayName,
+      headStaffId: headId,
+    };
+    const result = this.departmentsStore.update(this.editId, payload);
     if (!result.ok) {
       this.editFormError = result.error;
       return;
@@ -272,6 +337,9 @@ export class ClassesDepartmentsComponent {
     if (!commit.ok) {
       this.departmentsStore.restoreInMemory(before);
       this.importMessage = commit.error;
+    }
+    if (this.showDepartmentViewModal && this.viewDeptId === id) {
+      this.closeViewModal();
     }
   }
 
@@ -326,5 +394,49 @@ export class ClassesDepartmentsComponent {
   logout(): void {
     this.auth.logout();
     void this.router.navigateByUrl('/login');
+  }
+
+  async submitAssignClass(): Promise<void> {
+    this.assignClassError = '';
+    this.importMessage = '';
+    if (!this.assignClassDeptId.trim()) {
+      this.assignClassError = 'Choose a department.';
+      return;
+    }
+    const before = this.snapshotDepartments();
+    const result = this.departmentsStore.addClassToDepartment(this.assignClassDeptId, this.assignClassName);
+    if (!result.ok) {
+      this.assignClassError = result.error;
+      return;
+    }
+    const commit = await this.departmentsStore.commitAndReload();
+    if (!commit.ok) {
+      this.departmentsStore.restoreInMemory(before);
+      this.assignClassError = commit.error;
+      return;
+    }
+    this.assignClassName = '';
+    this.importMessage = 'Class added to department and saved to departments.json.';
+  }
+
+  async removeDepartmentClass(d: Department, classId: string): Promise<void> {
+    if (!window.confirm(`Remove this class from ${d.name}?`)) {
+      return;
+    }
+    this.importMessage = '';
+    this.assignClassError = '';
+    const before = this.snapshotDepartments();
+    const result = this.departmentsStore.removeClassFromDepartment(d.id, classId);
+    if (!result.ok) {
+      this.importMessage = result.error;
+      return;
+    }
+    const commit = await this.departmentsStore.commitAndReload();
+    if (!commit.ok) {
+      this.departmentsStore.restoreInMemory(before);
+      this.importMessage = commit.error;
+      return;
+    }
+    this.importMessage = 'Class removed and saved to departments.json.';
   }
 }

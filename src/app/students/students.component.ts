@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { StudentStoreService, STUDENTS_JSON_PATH } from '../data/student-store.service';
 import { DepartmentStoreService } from '../data/department-store.service';
-import { Department } from '../data/department.model';
+import { Department, DepartmentClass } from '../data/department.model';
 import { Student, STUDENT_GENDERS } from '../data/student.model';
 
 @Component({
@@ -32,11 +32,12 @@ export class StudentsComponent {
   actionMessage = '';
   addFormError = '';
   addSectionOpen = false;
-  /** Assign student → department (class); starts collapsed. */
+  /** Assign student → class within a department; starts collapsed. */
   assignSectionOpen = false;
   assignPickStudentId = '';
   assignPickDeptId = '';
-  assignToDeptError = '';
+  assignPickClassId = '';
+  assignToClassError = '';
   dataToolsSectionOpen = false;
   studentsListSectionOpen = false;
   private importFile: File | null = null;
@@ -71,39 +72,62 @@ export class StudentsComponent {
     );
   }
 
-  /** Departments that include this student id (for the table). */
-  departmentsSummaryForStudent(studentId: string): string {
+  /** Class and department rosters that include this student (for the table). */
+  classesSummaryForStudent(studentId: string): string {
     const id = studentId.trim();
-    const depts = this.departmentStore.departments().filter((d) =>
-      (d.assignedStudentIds ?? []).includes(id),
-    );
-    if (depts.length === 0) return '—';
-    return depts.map((d) => d.name).join(', ');
+    if (!id) return '—';
+    const parts: string[] = [];
+    for (const d of this.departmentStore.departments()) {
+      for (const c of d.classes ?? []) {
+        if ((c.assignedStudentIds ?? []).includes(id)) {
+          parts.push(`${d.name}: ${c.name}`);
+        }
+      }
+      if ((d.assignedStudentIds ?? []).includes(id)) {
+        parts.push(`${d.name} (department roster)`);
+      }
+    }
+    if (parts.length === 0) return '—';
+    return [...new Set(parts)].join(', ');
   }
 
-  async assignToDepartment(): Promise<void> {
-    this.assignToDeptError = '';
+  onAssignDepartmentChange(): void {
+    this.assignPickClassId = '';
+  }
+
+  classesForAssignDepartment(): DepartmentClass[] {
+    const d = this.departmentStore.departments().find((x) => x.id === this.assignPickDeptId);
+    return d?.classes ?? [];
+  }
+
+  async assignStudentToClass(): Promise<void> {
+    this.assignToClassError = '';
     this.actionMessage = '';
     if (!this.assignPickStudentId?.trim() || !this.assignPickDeptId?.trim()) {
-      this.assignToDeptError = 'Choose both a student and a department.';
+      this.assignToClassError = 'Choose a student and a department.';
+      return;
+    }
+    if (!this.assignPickClassId?.trim()) {
+      this.assignToClassError = 'Choose a class.';
       return;
     }
     const before = this.snapshotDepartments();
-    const result = this.departmentStore.addStudentToDepartment(
+    const result = this.departmentStore.addStudentToClass(
       this.assignPickDeptId,
+      this.assignPickClassId,
       this.assignPickStudentId,
     );
     if (!result.ok) {
-      this.assignToDeptError = result.error;
+      this.assignToClassError = result.error;
       return;
     }
     const commit = await this.departmentStore.commitAndReload();
     if (!commit.ok) {
       this.departmentStore.restoreInMemory(before);
-      this.assignToDeptError = commit.error;
+      this.assignToClassError = commit.error;
       return;
     }
-    this.actionMessage = 'Student linked to department. Saved to public/data/departments.json.';
+    this.actionMessage = 'Student assigned to class. Saved to public/data/departments.json.';
   }
 
   genderLabel(g: string): string {
