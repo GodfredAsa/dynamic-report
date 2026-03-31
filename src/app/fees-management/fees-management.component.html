@@ -52,6 +52,11 @@
     </button>
     @if (addSectionOpen) {
       <div id="add-fee-panel" role="region" aria-labelledby="add-fee-heading" class="px-6 pb-6 pt-0 border-t border-slate-600/60">
+        @if (!perms.canWrite()) {
+          <div class="mb-4 pt-4 px-3 py-2 rounded-lg bg-slate-900/40 border border-slate-600/60 text-slate-300 text-sm">
+            View-only access: adding fees is disabled for your account.
+          </div>
+        }
         <p class="text-slate-500 text-xs mb-4 pt-4">
           Choose <strong class="text-slate-400">date</strong>, <strong class="text-slate-400">type</strong> (Utility, Feeding, Classes, Termly money),
           and <strong class="text-slate-400">amount</strong>. <strong class="text-slate-400">Added by</strong> uses your current sign-in (name and email).
@@ -109,6 +114,9 @@
           <div class="sm:col-span-2">
             <button
               type="submit"
+              [disabled]="!perms.canWrite()"
+              [class.opacity-50]="!perms.canWrite()"
+              [class.cursor-not-allowed]="!perms.canWrite()"
               class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
               <i class="fa-solid fa-plus mr-2" aria-hidden="true"></i>Add fee entry
             </button>
@@ -187,6 +195,11 @@
     </button>
     @if (useSectionOpen) {
       <div id="use-fee-panel" role="region" aria-labelledby="use-fee-heading" class="px-6 pb-6 pt-0 border-t border-slate-600/60">
+        @if (!perms.canWrite()) {
+          <div class="mb-4 pt-4 px-3 py-2 rounded-lg bg-slate-900/40 border border-slate-600/60 text-slate-300 text-sm">
+            View-only access: using fees is disabled for your account.
+          </div>
+        }
         <p class="text-slate-500 text-xs mb-4 pt-4">
           Record how much of a fee type has been <strong class="text-slate-400">used</strong>, with a short
           <strong class="text-slate-400">purpose</strong>. Usage is attached to the latest entry of that fee type and
@@ -232,6 +245,9 @@
           <div class="sm:col-span-3">
             <button
               type="submit"
+              [disabled]="!perms.canWrite()"
+              [class.opacity-50]="!perms.canWrite()"
+              [class.cursor-not-allowed]="!perms.canWrite()"
               class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
               <i class="fa-solid fa-arrow-right-to-bracket mr-2" aria-hidden="true"></i>Use fee
             </button>

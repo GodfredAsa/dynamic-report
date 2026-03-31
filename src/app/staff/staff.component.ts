@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { AppUserStoreService, STAFF_JSON_PATH } from '../data/app-user-store.service';
-import { AppUser, STAFF_CARD_TYPES, STAFF_CATEGORIES } from '../data/app-user.model';
+import { APP_ROLES, AppRole, AppUser, STAFF_CARD_TYPES, STAFF_CATEGORIES } from '../data/app-user.model';
 
 @Component({
   selector: 'app-staff',
@@ -25,6 +25,7 @@ export class StaffComponent {
   readonly dataDirHint = 'public/data/staff.json';
   readonly cardTypes = STAFF_CARD_TYPES;
   readonly staffCategories = STAFF_CATEGORIES;
+  readonly appRoles = APP_ROLES;
 
   actionMessage = '';
   addFormError = '';
@@ -51,6 +52,7 @@ export class StaffComponent {
       cardNumber: '',
       cardType: STAFF_CARD_TYPES[0],
       staffCategory: 'teaching',
+      roles: ['STAFF'],
     };
   }
 
@@ -76,9 +78,17 @@ export class StaffComponent {
       cardNumber: s.cardNumber,
       cardType: s.cardType,
       staffCategory: s.staffCategory,
+      roles: (s.roles?.length ? [...s.roles] : ['STAFF']),
     };
     this.editStaffError = '';
     this.showStaffModal = true;
+  }
+
+  toggleRole(role: AppRole, checked: boolean): void {
+    const current = this.editStaff.roles ?? [];
+    const next = checked ? [...current, role] : current.filter((r) => r !== role);
+    this.editStaff.roles = [...new Set(next)];
+    if (!this.editStaff.roles.length) this.editStaff.roles = ['STAFF'];
   }
 
   closeStaffModal(): void {

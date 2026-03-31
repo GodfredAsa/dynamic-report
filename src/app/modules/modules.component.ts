@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { AppUserStoreService } from '../data/app-user-store.service';
+import { AppRole } from '../data/app-user.model';
 
 export interface ModuleCard {
   title: string;
@@ -18,10 +20,17 @@ export interface ModuleCard {
 export class ModulesComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
+  private staffStore = inject(AppUserStoreService);
 
   user = this.auth.currentUser;
 
   readonly moduleCards: ModuleCard[] = [
+    {
+      title: 'PROFILE',
+      description: 'View your login details and (if allowed) update your profile.',
+      iconClass: 'fa-solid fa-id-badge',
+      route: '/profile',
+    },
     {
       title: 'REPORTS',
       description:
@@ -71,7 +80,54 @@ export class ModulesComponent {
       iconClass: 'fa-solid fa-chart-line',
       route: '/statistics',
     },
+    {
+      title: 'SETUP',
+      description: 'Configure the system and admin-only settings.',
+      iconClass: 'fa-solid fa-sliders',
+      route: '/setup',
+    },
   ];
+
+  private routeRole(route: string): AppRole | null {
+    switch (route) {
+      case '/profile':
+        return null;
+      case '/reports':
+        return 'REPORTS';
+      case '/students':
+        return 'STUDENTS';
+      case '/staff':
+        return 'ADMIN';
+      case '/classes':
+        return 'CLASSES';
+      case '/term':
+        return 'TERM';
+      case '/fees':
+        return 'FEES';
+      case '/statistics':
+        return 'STATISTICS';
+      case '/setup':
+        return 'ADMIN';
+      default:
+        return null;
+    }
+  }
+
+  private currentRoles(): AppRole[] {
+    const email = this.auth.getSessionEmail();
+    if (!email) return [];
+    const u = this.staffStore.users().find((x) => x.email === email);
+    return u?.roles ?? [];
+  }
+
+  visibleModuleCards(): ModuleCard[] {
+    const roles = new Set(this.currentRoles());
+    return this.moduleCards.filter((m) => {
+      const r = this.routeRole(m.route);
+      if (!r) return true;
+      return roles.has(r);
+    });
+  }
 
   logout(): void {
     this.auth.logout();

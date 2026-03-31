@@ -1,0 +1,190 @@
+<div class="w-full max-w-5xl mx-auto">
+  <header class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-start gap-4">
+      <a
+        routerLink="/modules"
+        class="mt-1 text-slate-400 hover:text-emerald-400 transition text-sm shrink-0"
+        title="Back to modules">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        <span class="sr-only">Back to modules</span>
+      </a>
+      <div>
+        <h1 class="text-2xl font-semibold text-emerald-400 flex items-center gap-3">
+          <i class="fa-solid fa-id-badge text-emerald-500" aria-hidden="true"></i>
+          PROFILE
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">Your account details from <code class="text-slate-500">staff.json</code>.</p>
+        @if (user(); as name) {
+          <p class="text-slate-500 text-xs mt-2">Signed in as {{ name }}</p>
+        }
+      </div>
+    </div>
+    <button
+      type="button"
+      (click)="logout()"
+      class="shrink-0 px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+      Log out
+    </button>
+  </header>
+
+  @if (loadError()) {
+    <div class="mb-4 px-3 py-2 rounded-lg bg-amber-950/40 border border-amber-600/40 text-amber-200 text-sm" role="status">
+      {{ loadError() }}
+    </div>
+  }
+
+  <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 overflow-hidden mb-6">
+    <div class="px-6 py-4 border-b border-slate-600/70">
+      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">VIEW</h2>
+      <p class="text-slate-500 text-xs mt-0.5">Read-only view of your current staff record.</p>
+    </div>
+    <div class="px-6 py-4">
+      @if (!loaded()) {
+        <p class="text-slate-500 text-sm">Loading…</p>
+      } @else if (!me()) {
+        <p class="text-slate-500 text-sm">Could not resolve your profile. Try signing out and back in.</p>
+      } @else {
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 text-sm">
+          <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <p class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">ID</p>
+            <p class="text-slate-200 font-mono text-xs">{{ me()?.id }}</p>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">EMAIL</p>
+            <p class="text-slate-200 font-mono text-xs">{{ me()?.email }}</p>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">NAME</p>
+            <p class="text-slate-200 text-sm font-medium">{{ me()?.displayName }}</p>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">STAFF TYPE</p>
+            <p class="text-slate-300 text-sm">{{ me()?.staffCategory === 'non-teaching' ? 'Non-teaching' : 'Teaching' }}</p>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">CARD TYPE</p>
+            <p class="text-slate-300 text-sm">{{ me()?.cardType || '—' }}</p>
+          </div>
+          <div>
+            <p class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">CARD NUMBER</p>
+            <p class="text-slate-300 text-sm font-mono text-xs">{{ me()?.cardNumber || '—' }}</p>
+          </div>
+          <div class="sm:col-span-2">
+            <p class="text-[10px] uppercase tracking-wide text-slate-500 mb-1">ROLES</p>
+            <p class="text-slate-300 text-xs">{{ (me()?.roles?.length ? me()?.roles?.join(', ') : '—') }}</p>
+          </div>
+          </div>
+
+          <div class="flex items-center justify-center">
+            <div class="h-44 w-44 rounded-full border-2 border-slate-700/70 bg-slate-900/20 flex items-center justify-center">
+              <i
+                [class]="genderIcon(me()?.gender).iconClass + ' text-6xl'"
+                [attr.aria-label]="genderIcon(me()?.gender).label"></i>
+            </div>
+          </div>
+        </div>
+        <p class="text-slate-500 text-xs mt-4">
+          Note: profile updates are controlled by admin permissions and may be disabled in view-only mode.
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-600/70">
+      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">UPDATE</h2>
+      <p class="text-slate-500 text-xs mt-0.5">Update your name, card info, staff type, or password.</p>
+    </div>
+    <div class="px-6 py-5">
+      @if (!perms.canWrite()) {
+        <div class="mb-4 px-3 py-2 rounded-lg bg-slate-900/40 border border-slate-600/60 text-slate-300 text-sm">
+          View-only access: profile updates are disabled. (Admins can update inside <span class="text-slate-200">SETUP</span>.)
+        </div>
+      }
+      @if (error) {
+        <div class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm" role="alert">
+          {{ error }}
+        </div>
+      }
+      @if (message) {
+        <div class="mb-4 px-3 py-2 rounded-lg bg-slate-900/25 border border-slate-600/60 text-slate-300 text-sm" role="status">
+          {{ message }}
+        </div>
+      }
+
+      <form (ngSubmit)="saveProfile()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <label class="block text-xs text-slate-400 mb-1">Full name <span class="text-red-400">*</span></label>
+          <input
+            type="text"
+            name="profileName"
+            [(ngModel)]="draftDisplayName"
+            required
+            [disabled]="!perms.canWrite()"
+            class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Card number</label>
+          <input
+            type="text"
+            name="profileCardNumber"
+            [(ngModel)]="draftCardNumber"
+            [disabled]="!perms.canWrite()"
+            class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Card type <span class="text-red-400">*</span></label>
+          <select
+            name="profileCardType"
+            [(ngModel)]="draftCardType"
+            [disabled]="!perms.canWrite()"
+            class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+            @for (ct of cardTypes; track ct) {
+              <option [value]="ct">{{ ct }}</option>
+            }
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs text-slate-400 mb-1">Staff type <span class="text-red-400">*</span></label>
+          <select
+            name="profileStaffCategory"
+            [(ngModel)]="draftStaffCategory"
+            [disabled]="!perms.canWrite()"
+            class="input-field w-full max-w-md bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+            @for (sc of staffCategories; track sc) {
+              <option [value]="sc">{{ sc === 'non-teaching' ? 'Non-teaching' : 'Teaching' }}</option>
+            }
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs text-slate-400 mb-1">New password</label>
+          <input
+            type="password"
+            name="profilePassword"
+            [(ngModel)]="draftPassword"
+            [disabled]="!perms.canWrite()"
+            class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+            placeholder="Leave blank to keep current password" />
+        </div>
+        <div class="sm:col-span-2 flex flex-wrap gap-2 pt-2">
+          <button
+            type="submit"
+            [disabled]="!perms.canWrite()"
+            [class.opacity-50]="!perms.canWrite()"
+            [class.cursor-not-allowed]="!perms.canWrite()"
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+            Save changes
+          </button>
+          <button
+            type="button"
+            (click)="resetDraftFromCurrent()"
+            class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+            Reset
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+

@@ -16,7 +16,7 @@
   </header>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6">
-    @for (m of moduleCards; track m.route) {
+    @for (m of visibleModuleCards(); track m.route) {
       <a
         [routerLink]="m.route"
         class="group flex h-full min-h-[11rem] flex-col rounded-xl border border-slate-600/80 bg-slate-800/60 p-6 shadow-sm transition hover:border-emerald-500/50 hover:bg-slate-800/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60">

@@ -6,7 +6,17 @@
     "password": "1234",
     "cardNumber": "7876567890",
     "cardType": "VOTERS CARD",
-    "staffCategory": "teaching"
+    "staffCategory": "teaching",
+    "roles": [
+      "ADMIN",
+      "REPORTS",
+      "STUDENTS",
+      "STAFF",
+      "CLASSES",
+      "TERM",
+      "FEES",
+      "STATISTICS"
+    ]
   },
   {
     "id": "usr-2",
@@ -15,7 +25,10 @@
     "password": "1234",
     "cardNumber": "",
     "cardType": "GHANA-CARD",
-    "staffCategory": "teaching"
+    "staffCategory": "teaching",
+    "roles": [
+      "STAFF"
+    ]
   },
   {
     "id": "usr-5",
@@ -24,7 +37,13 @@
     "password": "1234",
     "cardNumber": "GHA-1325678-8",
     "cardType": "GHANA-CARD",
-    "staffCategory": "non-teaching"
+    "staffCategory": "non-teaching",
+    "roles": [
+      "TERM",
+      "REPORTS",
+      "CLASSES",
+      "STUDENTS"
+    ]
   },
   {
     "id": "usr-3",
@@ -33,7 +52,10 @@
     "password": "1234",
     "cardNumber": "",
     "cardType": "GHANA-CARD",
-    "staffCategory": "teaching"
+    "staffCategory": "teaching",
+    "roles": [
+      "STAFF"
+    ]
   },
   {
     "id": "usr-4",
@@ -42,6 +64,9 @@
     "password": "1234",
     "cardNumber": "",
     "cardType": "GHANA-CARD",
-    "staffCategory": "teaching"
+    "staffCategory": "teaching",
+    "roles": [
+      "STAFF"
+    ]
   }
 ]

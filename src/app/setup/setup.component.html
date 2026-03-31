@@ -1,0 +1,104 @@
+<div class="w-full max-w-5xl mx-auto">
+  <header class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-start gap-4">
+      <a
+        routerLink="/modules"
+        class="mt-1 text-slate-400 hover:text-emerald-400 transition text-sm shrink-0"
+        title="Back to modules">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        <span class="sr-only">Back to modules</span>
+      </a>
+      <div>
+        <h1 class="text-2xl font-semibold text-emerald-400 flex items-center gap-3">
+          <i class="fa-solid fa-sliders text-emerald-500" aria-hidden="true"></i>
+          SETUP
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">System settings and configuration.</p>
+        @if (user(); as name) {
+          <p class="text-slate-500 text-xs mt-2">Signed in as {{ name }}</p>
+        }
+      </div>
+    </div>
+    <button
+      type="button"
+      (click)="logout()"
+      class="shrink-0 px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+      Log out
+    </button>
+  </header>
+
+  <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 mb-6">
+    <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider mb-2">ADMIN ACTIONS</h2>
+    <p class="text-slate-500 text-sm">
+      Create / update / delete actions live here. Other modules are view-only.
+    </p>
+  </div>
+
+  <div class="space-y-6">
+    <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 overflow-hidden" open>
+      <summary class="cursor-pointer select-none px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-800/40 transition">
+        <div class="min-w-0">
+          <p class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">STAFF</p>
+          <p class="text-slate-500 text-xs mt-0.5">Manage staff accounts and roles (admin-only).</p>
+        </div>
+        <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0"></i>
+      </summary>
+      <div class="border-t border-slate-600/60 p-4">
+        <app-staff />
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 overflow-hidden">
+      <summary class="cursor-pointer select-none px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-800/40 transition">
+        <div class="min-w-0">
+          <p class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">CLASSES &amp; DEPARTMENTS</p>
+          <p class="text-slate-500 text-xs mt-0.5">Add, update, and remove departments and class groups.</p>
+        </div>
+        <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0"></i>
+      </summary>
+      <div class="border-t border-slate-600/60 p-4">
+        <app-classes-departments />
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 overflow-hidden">
+      <summary class="cursor-pointer select-none px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-800/40 transition">
+        <div class="min-w-0">
+          <p class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">STUDENTS</p>
+          <p class="text-slate-500 text-xs mt-0.5">Add/edit learners and assign them to classes.</p>
+        </div>
+        <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0"></i>
+      </summary>
+      <div class="border-t border-slate-600/60 p-4">
+        <app-students />
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 overflow-hidden">
+      <summary class="cursor-pointer select-none px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-800/40 transition">
+        <div class="min-w-0">
+          <p class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">FEES MANAGEMENT</p>
+          <p class="text-slate-500 text-xs mt-0.5">Add fees and record usage.</p>
+        </div>
+        <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0"></i>
+      </summary>
+      <div class="border-t border-slate-600/60 p-4">
+        <app-fees-management />
+      </div>
+    </details>
+
+    <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 overflow-hidden">
+      <summary class="cursor-pointer select-none px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-800/40 transition">
+        <div class="min-w-0">
+          <p class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">TERM</p>
+          <p class="text-slate-500 text-xs mt-0.5">Edit term label, currency, dates and calculated weeks.</p>
+        </div>
+        <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0"></i>
+      </summary>
+      <div class="border-t border-slate-600/60 p-4">
+        <app-term />
+      </div>
+    </details>
+  </div>
+</div>
+

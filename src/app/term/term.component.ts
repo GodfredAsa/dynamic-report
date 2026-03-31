@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { PermissionsService } from '../auth/permissions.service';
 import { TermFeesStoreService } from '../data/term-fees-store.service';
 import { TermFeesSummary } from '../data/term-fees.model';
 
@@ -15,6 +16,7 @@ export class TermComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
   private termStore = inject(TermFeesStoreService);
+  readonly perms = inject(PermissionsService);
 
   user = this.auth.currentUser;
   summary = this.termStore.summary;
@@ -84,6 +86,10 @@ export class TermComponent {
   }
 
   async saveTermSettings(): Promise<void> {
+    if (!this.perms.canWrite()) {
+      this.message = 'View-only access: you cannot change term settings.';
+      return;
+    }
     this.message = '';
     const next = this.buildSummary();
     this.termStore.setSummary(next);

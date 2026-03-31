@@ -374,6 +374,24 @@
                 }
               </select>
             </div>
+
+            <div class="sm:col-span-2">
+              <p class="text-xs text-slate-400 mb-2">Module roles</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                @for (r of appRoles; track r) {
+                  <label class="flex items-center gap-2 rounded-lg border border-slate-600/60 bg-slate-900/25 px-3 py-2">
+                    <input
+                      type="checkbox"
+                      [checked]="(editStaff.roles ?? []).includes(r)"
+                      (change)="toggleRole(r, ($any($event.target).checked))" />
+                    <span class="text-sm text-slate-300">{{ r }}</span>
+                  </label>
+                }
+              </div>
+              <p class="text-[10px] text-slate-500 mt-2">
+                If no role is selected, the system keeps <span class="text-slate-400">STAFF</span> by default.
+              </p>
+            </div>
             <div class="sm:col-span-2 flex flex-wrap gap-2 pt-2">
               <button
                 type="submit"

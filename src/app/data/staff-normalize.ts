@@ -1,6 +1,38 @@
-import { AppUser, STAFF_CARD_TYPES, StaffCategory } from './app-user.model';
+import { AppRole, AppUser, APP_ROLES, STAFF_CARD_TYPES, STAFF_GENDERS, StaffCategory, StaffGender } from './app-user.model';
 
 const ALLOWED_CARD_TYPES = new Set<string>(STAFF_CARD_TYPES);
+const ALLOWED_ROLES = new Set<string>(APP_ROLES);
+const ALLOWED_GENDERS = new Set<string>(STAFF_GENDERS);
+
+export function normalizeStaffGender(raw: unknown): StaffGender {
+  const s = String(raw ?? '').trim().toLowerCase();
+  if (ALLOWED_GENDERS.has(s)) return s as StaffGender;
+  return 'male';
+}
+
+function normalizeRole(raw: unknown): AppRole | null {
+  const s = String(raw ?? '')
+    .trim()
+    .toUpperCase()
+    .replace(/[\s_]+/g, '_');
+  // allow a few friendlier aliases
+  if (s === 'ALL_PRIVILEGES' || s === 'ALL_PRIVILEGE' || s === 'SUPERUSER') return 'ADMIN';
+  if (s === 'CLASSES_&_DEPARTMENTS' || s === 'CLASSES_AND_DEPARTMENTS') return 'CLASSES';
+  if (s === 'FEES_MANAGEMENT') return 'FEES';
+  if (s === 'STATISTICS_&_PERFORMANCE' || s === 'STATISTICS_AND_PERFORMANCE') return 'STATISTICS';
+  if (!ALLOWED_ROLES.has(s)) return null;
+  return s as AppRole;
+}
+
+export function normalizeRoles(raw: unknown): AppRole[] {
+  if (!Array.isArray(raw)) return ['STAFF'];
+  const out: AppRole[] = [];
+  for (const x of raw) {
+    const r = normalizeRole(x);
+    if (r && !out.includes(r)) out.push(r);
+  }
+  return out.length ? out : ['STAFF'];
+}
 
 export function normalizeStaffCategory(raw: unknown): StaffCategory {
   const s = String(raw ?? '')
@@ -30,6 +62,8 @@ export function normalizeAppUser(raw: Partial<AppUser>): AppUser | null {
     cardNumber: String(raw.cardNumber ?? '').trim(),
     cardType: normalizeCardType(raw.cardType),
     staffCategory: normalizeStaffCategory(raw.staffCategory),
+    gender: normalizeStaffGender((raw as any).gender),
+    roles: normalizeRoles((raw as any).roles),
   };
 }
 

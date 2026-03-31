@@ -3,7 +3,7 @@ import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { AppUser } from './app-user.model';
+import { AppRole, AppUser } from './app-user.model';
 import { normalizeAppUser, normalizeStaffList } from './staff-normalize';
 
 /**
@@ -22,6 +22,7 @@ const FALLBACK_STAFF: AppUser[] = [
     cardNumber: '',
     cardType: 'GHANA-CARD',
     staffCategory: 'non-teaching',
+    roles: ['STAFF'],
   },
   {
     id: 'usr-2',
@@ -31,6 +32,7 @@ const FALLBACK_STAFF: AppUser[] = [
     cardNumber: '',
     cardType: 'GHANA-CARD',
     staffCategory: 'teaching',
+    roles: ['STAFF'],
   },
   {
     id: 'usr-3',
@@ -40,6 +42,7 @@ const FALLBACK_STAFF: AppUser[] = [
     cardNumber: '',
     cardType: 'GHANA-CARD',
     staffCategory: 'teaching',
+    roles: ['STAFF'],
   },
   {
     id: 'usr-4',
@@ -49,6 +52,7 @@ const FALLBACK_STAFF: AppUser[] = [
     cardNumber: '',
     cardType: 'GHANA-CARD',
     staffCategory: 'teaching',
+    roles: ['STAFF'],
   },
 ];
 
@@ -144,7 +148,7 @@ export class AppUserStoreService {
       return { ok: false, error: 'Password is required so the staff member can sign in.' };
     }
     const id = this.nextStaffId();
-    const u = normalizeAppUser({ ...input, id });
+    const u = normalizeAppUser({ ...input, id, roles: (input.roles?.length ? input.roles : (['STAFF'] as AppRole[])) });
     if (!u) return { ok: false, error: 'Display name and email are required.' };
     if (this.users().some((x) => x.email === u.email)) {
       return { ok: false, error: 'A staff member with this email already exists.' };
@@ -171,6 +175,7 @@ export class AppUserStoreService {
       email: String(input.email ?? '').trim().toLowerCase(),
       displayName: String(input.displayName ?? '').trim(),
       cardNumber: String(input.cardNumber ?? '').trim(),
+      roles: (input.roles?.length ? input.roles : prev.roles),
     });
     if (!u) return { ok: false, error: 'Display name and email are required.' };
     if (this.users().some((x) => x.id !== id && x.email === u.email)) {

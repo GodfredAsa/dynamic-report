@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { PermissionsService } from '../auth/permissions.service';
 import { StudentStoreService, STUDENTS_JSON_PATH } from '../data/student-store.service';
 import { DepartmentStoreService } from '../data/department-store.service';
 import { Department, DepartmentClass } from '../data/department.model';
@@ -18,6 +19,7 @@ export class StudentsComponent {
   private router = inject(Router);
   private studentStore = inject(StudentStoreService);
   private departmentStore = inject(DepartmentStoreService);
+  readonly perms = inject(PermissionsService);
 
   user = this.auth.currentUser;
   students = this.studentStore.students;
@@ -101,6 +103,10 @@ export class StudentsComponent {
   }
 
   async assignStudentToClass(): Promise<void> {
+    if (!this.perms.canWrite()) {
+      this.assignToClassError = 'View-only access: you cannot assign students.';
+      return;
+    }
     this.assignToClassError = '';
     this.actionMessage = '';
     if (!this.assignPickStudentId?.trim() || !this.assignPickDeptId?.trim()) {
@@ -159,6 +165,10 @@ export class StudentsComponent {
   }
 
   async saveStudentEdit(): Promise<void> {
+    if (!this.perms.canWrite()) {
+      this.editStudentError = 'View-only access: you cannot edit students.';
+      return;
+    }
     this.editStudentError = '';
     this.actionMessage = '';
     const before = this.snapshotStudents();
@@ -183,6 +193,10 @@ export class StudentsComponent {
   }
 
   async addStudentRow(): Promise<void> {
+    if (!this.perms.canWrite()) {
+      this.addFormError = 'View-only access: you cannot add students.';
+      return;
+    }
     this.addFormError = '';
     this.actionMessage = '';
     const before = this.snapshotStudents();

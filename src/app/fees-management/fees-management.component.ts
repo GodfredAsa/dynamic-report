@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { PermissionsService } from '../auth/permissions.service';
 import { FeeStoreService, FEES_JSON_PATH } from '../data/fee-store.service';
 import { FeeRecord, FEE_TYPES, FeeType } from '../data/fee.model';
 
@@ -15,6 +16,7 @@ export class FeesManagementComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
   private feeStore = inject(FeeStoreService);
+  readonly perms = inject(PermissionsService);
 
   user = this.auth.currentUser;
   fees = this.feeStore.fees;
@@ -124,6 +126,10 @@ export class FeesManagementComponent {
   }
 
   async addFeeEntry(): Promise<void> {
+    if (!this.perms.canWrite()) {
+      this.addFormError = 'You have view-only access. Ask an admin for write privileges.';
+      return;
+    }
     this.addFormError = '';
     this.actionMessage = '';
     const name = (this.user() ?? '').trim();
@@ -156,6 +162,10 @@ export class FeesManagementComponent {
   }
 
   async useFee(): Promise<void> {
+    if (!this.perms.canWrite()) {
+      this.useFormError = 'You have view-only access. Ask an admin for write privileges.';
+      return;
+    }
     this.useFormError = '';
     this.actionMessage = '';
     const before = this.snapshotFees();
@@ -197,6 +207,10 @@ export class FeesManagementComponent {
   }
 
   async saveFeeModal(): Promise<void> {
+    if (!this.perms.canWrite()) {
+      this.feeModalError = 'You have view-only access. Ask an admin for write privileges.';
+      return;
+    }
     this.feeModalError = '';
     this.actionMessage = '';
     const before = this.snapshotFees();
@@ -222,6 +236,10 @@ export class FeesManagementComponent {
   }
 
   async deleteFee(f: FeeRecord): Promise<void> {
+    if (!this.perms.canWrite()) {
+      this.actionMessage = 'View-only access: you cannot delete fees.';
+      return;
+    }
     if (!window.confirm(`Delete fee ${f.id} (${f.type}, ${this.formatMoney(f.amount, f.currency)})?`)) {
       return;
     }

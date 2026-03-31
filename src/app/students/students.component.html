@@ -52,6 +52,11 @@
     </button>
     @if (addSectionOpen) {
       <div id="add-student-panel" role="region" aria-labelledby="add-student-heading" class="px-6 pb-6 pt-0 border-t border-slate-600/60">
+        @if (!perms.canWrite()) {
+          <div class="mb-4 pt-4 px-3 py-2 rounded-lg bg-slate-900/40 border border-slate-600/60 text-slate-300 text-sm">
+            View-only access: adding students is disabled for your account.
+          </div>
+        }
         <p class="text-slate-500 text-xs mb-4 pt-4">
           Each learner needs a <strong class="text-slate-400">name</strong> and <strong class="text-slate-400">gender</strong> (male or female), plus a
           <strong class="text-slate-400">parent or guardian</strong> with <strong class="text-slate-400">name</strong> and
@@ -108,6 +113,9 @@
           <div class="sm:col-span-2">
             <button
               type="submit"
+              [disabled]="!perms.canWrite()"
+              [class.opacity-50]="!perms.canWrite()"
+              [class.cursor-not-allowed]="!perms.canWrite()"
               class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
               <i class="fa-solid fa-user-plus mr-2" aria-hidden="true"></i>Add student
             </button>
@@ -137,6 +145,11 @@
         role="region"
         aria-labelledby="assign-student-class-heading"
         class="px-6 pb-6 pt-0 border-t border-slate-600/60">
+        @if (!perms.canWrite()) {
+          <div class="mb-4 pt-4 px-3 py-2 rounded-lg bg-slate-900/40 border border-slate-600/60 text-slate-300 text-sm">
+            View-only access: assigning students is disabled for your account.
+          </div>
+        }
         <p class="text-slate-500 text-xs mb-4 pt-4">
           Pick the <strong class="text-slate-400">department</strong>, then the <strong class="text-slate-400">class group</strong>
           (e.g. Form 1 A). Rosters are stored on each class in
@@ -197,6 +210,9 @@
           <div class="sm:col-span-2">
             <button
               type="submit"
+              [disabled]="!perms.canWrite()"
+              [class.opacity-50]="!perms.canWrite()"
+              [class.cursor-not-allowed]="!perms.canWrite()"
               class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
               <i class="fa-solid fa-link mr-2" aria-hidden="true"></i>Assign to class
             </button>
