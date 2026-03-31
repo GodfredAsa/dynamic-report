@@ -38,6 +38,37 @@ export interface FeeCurrencyBreakdown {
   byType: Record<FeeType, number>;
 }
 
+export interface FeeLinePoint {
+  date: string;
+  total: number;
+}
+
+export interface FeeLinePointScaled extends FeeLinePoint {
+  x: number;
+  y: number;
+}
+
+export interface FeeLineSeries {
+  currency: string;
+  color: string;
+  points: FeeLinePointScaled[];
+  pathD: string;
+}
+
+export interface FeeLineChartLabels {
+  minDate: string;
+  maxDate: string;
+  maxValue: number;
+}
+
+export interface FeeTooltipState {
+  visible: boolean;
+  x: number;
+  y: number;
+  color: string;
+  text: string;
+}
+
 @Component({
   selector: 'app-statistics',
   imports: [CommonModule, RouterLink],
@@ -173,6 +204,103 @@ export class StatisticsComponent {
   feeTypeAmount(type: FeeType): number {
     const { byType } = this.feeTypeTotals();
     return byType[type] ?? 0;
+  }
+
+  /** Fee totals by date (YYYY-MM-DD), grouped per currency for a line chart. */
+  feeLineChartSeries(): FeeLineSeries[] {
+    const fees = this.feeStore.fees();
+    const byCurDate = new Map<string, Map<string, number>>();
+    for (const f of fees) {
+      const date = String(f.date ?? '').trim();
+      if (!date) continue;
+      const cur = (f.currency || 'GHS').trim().toUpperCase().slice(0, 3) || 'GHS';
+      if (!byCurDate.has(cur)) byCurDate.set(cur, new Map<string, number>());
+      const m = byCurDate.get(cur)!;
+      m.set(date, (m.get(date) ?? 0) + (Number(f.amount) || 0));
+    }
+
+    const colors = ['#38bdf8', '#34ca94', '#facc15', '#a855f7', '#fb7185'];
+    const seriesRaw: { currency: string; points: FeeLinePoint[] }[] = [...byCurDate.entries()]
+      .map(([currency, m]) => {
+        const points = [...m.entries()]
+          .map(([d, total]) => ({ date: d, total }))
+          .sort((a, b) => a.date.localeCompare(b.date));
+        return { currency, points };
+      })
+      .sort((a, b) => a.currency.localeCompare(b.currency));
+
+    const allMax = Math.max(0, ...seriesRaw.flatMap((s) => s.points.map((p) => p.total)));
+
+    const width = 560;
+    const height = 220;
+    const padX = 28;
+    const padY = 18;
+    const innerW = Math.max(1, width - padX * 2);
+    const innerH = Math.max(1, height - padY * 2);
+
+    const toX = (i: number, n: number): number => {
+      if (n <= 1) return padX + innerW / 2;
+      return padX + (i / (n - 1)) * innerW;
+    };
+    const toY = (v: number): number => {
+      if (allMax <= 0) return padY + innerH;
+      const t = Math.max(0, Math.min(1, v / allMax));
+      return padY + (1 - t) * innerH;
+    };
+
+    return seriesRaw.map((s, idx) => {
+      const n = s.points.length;
+      const scaled: FeeLinePointScaled[] = s.points.map((p, i) => {
+        const x = toX(i, n);
+        const y = toY(p.total);
+        return { ...p, x, y };
+      });
+      // If there is only one point, draw a tiny line segment so it renders.
+      const d =
+        n === 0
+          ? ''
+          : n === 1
+            ? `M ${(scaled[0].x - 0.01).toFixed(2)} ${scaled[0].y.toFixed(2)} L ${(scaled[0].x + 0.01).toFixed(2)} ${scaled[0].y.toFixed(2)}`
+            : scaled
+                .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
+                .join(' ');
+      return {
+        currency: s.currency,
+        color: colors[idx % colors.length],
+        points: scaled,
+        pathD: d,
+      };
+    });
+  }
+
+  feeLineChartLabels(): FeeLineChartLabels {
+    const all = this.feeLineChartSeries().flatMap((s) => s.points);
+    if (all.length === 0) return { minDate: '', maxDate: '', maxValue: 0 };
+    const dates = all.map((p) => p.date).sort((a, b) => a.localeCompare(b));
+    const maxValue = Math.max(0, ...all.map((p) => p.total));
+    return { minDate: dates[0], maxDate: dates[dates.length - 1], maxValue };
+  }
+
+  feeTooltip: FeeTooltipState = { visible: false, x: 0, y: 0, color: '#94a3b8', text: '' };
+
+  showFeeTooltip(ev: MouseEvent, host: HTMLElement, color: string, text: string): void {
+    this.feeTooltip.visible = true;
+    this.feeTooltip.color = color;
+    this.feeTooltip.text = text;
+    this.moveFeeTooltip(ev, host);
+  }
+
+  moveFeeTooltip(ev: MouseEvent, host: HTMLElement): void {
+    const rect = host.getBoundingClientRect();
+    if (!rect) return;
+    const x = ev.clientX - rect.left;
+    const y = ev.clientY - rect.top;
+    this.feeTooltip.x = Math.max(0, Math.min(rect.width, x));
+    this.feeTooltip.y = Math.max(0, Math.min(rect.height, y));
+  }
+
+  hideFeeTooltip(): void {
+    this.feeTooltip.visible = false;
   }
 
   /**

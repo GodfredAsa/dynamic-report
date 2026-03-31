@@ -41,5 +41,23 @@
     "currency": "GHS",
     "addedByName": "Abi Administrator",
     "addedByEmail": "abi@dynamic.com"
+  },
+  {
+    "id": "fee-4",
+    "date": "2026-03-23",
+    "type": "Utility",
+    "amount": 1200,
+    "currency": "GHS",
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com"
+  },
+  {
+    "id": "fee-5",
+    "date": "2026-03-11",
+    "type": "Classes",
+    "amount": 4500,
+    "currency": "GHS",
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com"
   }
 ]
