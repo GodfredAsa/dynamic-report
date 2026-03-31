@@ -3,7 +3,7 @@ import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { FeeRecord } from './fee.model';
+import { FeeRecord, FeeType, FeeUse } from './fee.model';
 import { normalizeFeeList, normalizeFeeRecord } from './fee-normalize';
 
 export const FEES_JSON_PATH = '/data/fees.json';
@@ -120,6 +120,49 @@ export class FeeStoreService {
   removeFee(id: string): void {
     const trimmed = id.trim();
     this.fees.update((list) => list.filter((f) => f.id !== trimmed));
+  }
+
+  addUsageToFeeType(
+    type: FeeType,
+    amountUsedRaw: number,
+    purposeRaw: string,
+  ): { ok: true } | { ok: false; error: string } {
+    const amountUsed = Number(amountUsedRaw) || 0;
+    const purpose = (purposeRaw ?? '').trim();
+    if (amountUsed <= 0) {
+      return { ok: false, error: 'Usage amount must be greater than zero.' };
+    }
+    const list = this.fees();
+    const idx = list.findIndex((f) => f.type === type);
+    if (idx < 0) {
+      return { ok: false, error: 'No fee found for this type yet.' };
+    }
+    const target = list[idx];
+    const existingUses: FeeUse[] = target.uses ? [...target.uses] : [];
+    const totalUsed = existingUses.reduce((sum, u) => sum + (u.amountUsed || 0), 0);
+    if (totalUsed + amountUsed > target.amount) {
+      return {
+        ok: false,
+        error: 'Usage exceeds the total amount recorded for this fee type.',
+      };
+    }
+    const nextUses: FeeUse[] = [
+      ...existingUses,
+      {
+        amountUsed,
+        purpose,
+      },
+    ];
+    const updated: FeeRecord = {
+      ...target,
+      uses: nextUses,
+    };
+    this.fees.update((all) => {
+      const copy = [...all];
+      copy[idx] = updated;
+      return sortFees(copy);
+    });
+    return { ok: true };
   }
 
   exportFeesDownload(): void {

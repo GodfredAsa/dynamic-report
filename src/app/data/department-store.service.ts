@@ -272,6 +272,33 @@ export class DepartmentStoreService {
     return this.update(d.id, { ...toDepartmentInput(d), classes: nextClasses });
   }
 
+  /**
+   * Rename a class group inside a department while preserving its assigned students roster.
+   */
+  updateClassNameInDepartment(
+    deptId: string,
+    classId: string,
+    classNameRaw: string,
+  ): { ok: true } | { ok: false; error: string } {
+    const d = this.departments().find((x) => x.id === deptId.trim());
+    if (!d) return { ok: false, error: 'Department not found.' };
+    const cid = classId.trim();
+    const name = classNameRaw.trim();
+    if (!cid) return { ok: false, error: 'Pick a class.' };
+    if (!name) return { ok: false, error: 'Class name is required.' };
+
+    const cls = d.classes.find((c) => c.id === cid);
+    if (!cls) return { ok: false, error: 'Class not found on this department.' };
+
+    const key = name.toLowerCase();
+    if (d.classes.some((c) => c.id !== cid && c.name.trim().toLowerCase() === key)) {
+      return { ok: false, error: 'This class name already exists in the department.' };
+    }
+
+    const nextClasses = d.classes.map((c) => (c.id === cid ? { ...c, name } : c));
+    return this.update(d.id, { ...toDepartmentInput(d), classes: nextClasses });
+  }
+
   replaceAll(list: Department[]): void {
     const seen = new Set<string>();
     const next: Department[] = [];

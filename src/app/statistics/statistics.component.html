@@ -11,7 +11,7 @@
       <div>
         <h1 class="text-2xl font-semibold text-emerald-400 flex items-center gap-3">
           <i class="fa-solid fa-chart-line text-emerald-500" aria-hidden="true"></i>
-          Statistics &amp; performance
+          STATISTICS &amp; PERFORMANCE
         </h1>
         <p class="text-slate-400 text-sm mt-1">
           Headline counts from <code class="text-slate-500">staff.json</code>,
@@ -42,7 +42,7 @@
       aria-labelledby="card-staff-heading">
       <div class="flex items-start justify-between gap-2 mb-2">
         <h2 id="card-staff-heading" class="text-xs font-semibold uppercase tracking-wide text-emerald-400/90">
-          Staff
+          STAFF
         </h2>
         <span
           class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-600/15 text-emerald-400"
@@ -76,7 +76,7 @@
       aria-labelledby="card-students-heading">
       <div class="flex items-start justify-between gap-2 mb-2">
         <h2 id="card-students-heading" class="text-xs font-semibold uppercase tracking-wide text-emerald-400/90">
-          Students
+          STUDENTS
         </h2>
         <span
           class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-emerald-600/15 text-emerald-400"
@@ -97,7 +97,7 @@
       aria-labelledby="card-people-heading">
       <div class="flex items-start justify-between gap-2 mb-2">
         <h2 id="card-people-heading" class="text-xs font-semibold uppercase tracking-wide text-emerald-400/90">
-          People in system
+          PEOPLE IN SYSTEM
         </h2>
         <span
           class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#03AED2]/15 text-[#03AED2]"
@@ -115,9 +115,11 @@
         Sum of <code class="text-slate-600">staff.json</code> and <code class="text-slate-600">students.json</code>.
       </p>
     </article>
+  </div>
 
-    <article
-      class="rounded-lg border border-slate-600/80 bg-slate-800/60 p-4 shadow-sm flex flex-col min-w-0 md:col-span-3 mt-3 md:mt-5"
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+    <section
+      class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8"
       aria-labelledby="card-ledger-fees-heading">
       <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
         <div class="flex items-start gap-2 min-w-0">
@@ -127,10 +129,10 @@
             <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
           </span>
           <div>
-            <h2 id="card-ledger-fees-heading" class="text-xs font-semibold uppercase tracking-wide text-emerald-400/90">
-              Fee ledger summary
+            <h2 id="card-ledger-fees-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">
+              FEE LEDGER SUMMARY
             </h2>
-            <p class="text-[10px] text-slate-500 mt-0.5 leading-snug">
+            <p class="text-slate-500 text-xs leading-snug">
               Totals from <code class="text-slate-600">fees.json</code> (Utility, Feeding, Classes, Termly money). Manage entries under
               <a routerLink="/fees" class="text-emerald-500/90 hover:text-emerald-400">Fees management</a>.
             </p>
@@ -152,27 +154,72 @@
                 {{ formatLedgerMoney(block.total, block.currency) }}
               </span>
             </div>
-            <ul class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            <ul class="space-y-2 text-sm">
               @for (t of feeTypes; track t) {
-                <li class="min-w-0">
-                  <p class="text-[10px] uppercase tracking-wide text-slate-500 mb-0.5 truncate" [attr.title]="t">{{ t }}</p>
-                  <p class="font-medium tabular-nums text-slate-200">
+                <li class="flex items-center justify-between gap-3">
+                  <span class="text-slate-400 truncate" [attr.title]="t">{{ t }}</span>
+                  <span class="font-medium tabular-nums text-slate-200">
                     {{ formatLedgerMoney(block.byType[t], block.currency) }}
-                  </p>
+                  </span>
                 </li>
               }
             </ul>
           </div>
         }
       }
-    </article>
+    </section>
+
+    <section
+      class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8"
+      aria-labelledby="fee-types-donut-heading">
+      <h2 id="fee-types-donut-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">FEE TYPES — DONUT</h2>
+      <p class="text-slate-500 text-xs mb-6">Percentage contribution of each fee type based on summed amounts in the ledger.</p>
+
+      @if (!feeLedgerLoaded()) {
+        <p class="text-slate-500 text-sm py-4">Loading fee data…</p>
+      } @else if (feeStore.fees().length === 0) {
+        <div class="rounded-lg border border-slate-600/60 bg-slate-900/40 px-4 py-8 text-center">
+          <p class="text-slate-400 text-sm">No fee entries yet.</p>
+          <p class="text-slate-500 text-xs mt-2">Add fees under <span class="text-slate-400">Fees management</span>.</p>
+        </div>
+      } @else {
+        <div class="flex flex-col sm:flex-row sm:items-center gap-8">
+          <div
+            class="relative mx-auto h-52 w-52 shrink-0 rounded-full shadow-lg ring-2 ring-slate-600/40"
+            [style.background]="feeTypeDonutConic()"
+            role="img"
+            aria-label="Fee type percentage contribution donut">
+            <div class="absolute inset-[24%] rounded-full bg-slate-800 shadow-inner"></div>
+          </div>
+          <div class="flex-1 space-y-2 min-w-0">
+            @for (t of feeTypes; track t) {
+              <div class="flex items-center gap-3">
+                <span
+                  class="h-3 w-3 shrink-0 rounded-full"
+                  [ngStyle]="{
+                    backgroundColor:
+                      t === feeTypes[0] ? '#facc15' : t === feeTypes[1] ? '#22c55e' : t === feeTypes[2] ? '#38bdf8' : '#a855f7'
+                  }"
+                  aria-hidden="true"></span>
+                <div class="min-w-0 flex-1 flex justify-between gap-2 text-sm">
+                  <span class="text-slate-300 truncate" [attr.title]="t">{{ t }}</span>
+                  <span class="text-slate-400 tabular-nums">
+                    {{ feeTypePct(t) }}%
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </section>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
     <section
       class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8"
       aria-labelledby="donut-heading">
-      <h2 id="donut-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">All departments — gender (donut)</h2>
+      <h2 id="donut-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">ALL DEPARTMENTS — GENDER (DONUT)</h2>
       <p class="text-slate-500 text-xs mb-6">
         Unique students who appear in at least one department’s class list. Each person is counted once for male / female
         totals.
@@ -233,7 +280,7 @@
     <section
       class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8 flex flex-col"
       aria-labelledby="bars-heading">
-      <h2 id="bars-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">By department — stacked bars</h2>
+      <h2 id="bars-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">BY DEPARTMENT — STACKED BARS</h2>
       <p class="text-slate-500 text-xs mb-6">
         Each bar is one department. Blue = male, teal (<code class="text-slate-500">#34ca94</code>) = female among students
         on that department’s list (a student in two departments appears in both bars).

@@ -8,6 +8,7 @@ import { StaffComponent } from './staff/staff.component';
 import { ClassesDepartmentsComponent } from './classes-departments/classes-departments.component';
 import { StatisticsComponent } from './statistics/statistics.component';
 import { FeesManagementComponent } from './fees-management/fees-management.component';
+import { TermComponent } from './term/term.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [loginGuard] },
@@ -17,6 +18,7 @@ export const routes: Routes = [
   { path: 'staff', component: StaffComponent, canActivate: [authGuard] },
   { path: 'classes', component: ClassesDepartmentsComponent, canActivate: [authGuard] },
   { path: 'fees', component: FeesManagementComponent, canActivate: [authGuard] },
+  { path: 'term', component: TermComponent, canActivate: [authGuard] },
   { path: 'statistics', component: StatisticsComponent, canActivate: [authGuard] },
   { path: '', pathMatch: 'full', redirectTo: 'login' },
   { path: '**', redirectTo: 'login' },

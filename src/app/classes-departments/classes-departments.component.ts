@@ -6,7 +6,7 @@ import { AuthService } from '../auth/auth.service';
 import { DepartmentStoreService } from '../data/department-store.service';
 import { AppUserStoreService } from '../data/app-user-store.service';
 import { StudentStoreService } from '../data/student-store.service';
-import { Department, DepartmentInput, toDepartmentInput } from '../data/department.model';
+import { Department, DepartmentClass, DepartmentInput, toDepartmentInput } from '../data/department.model';
 
 @Component({
   selector: 'app-classes-departments',
@@ -58,6 +58,18 @@ export class ClassesDepartmentsComponent {
   /** Read-only department detail dialog */
   showDepartmentViewModal = false;
   viewDeptId = '';
+
+  /** Read-only class detail dialog */
+  showClassViewModal = false;
+  viewClassDeptId = '';
+  viewClassId = '';
+
+  /** Editable class name dialog */
+  showClassEditModal = false;
+  editClassDeptId = '';
+  editClassId = '';
+  editClassName = '';
+  editClassFormError = '';
 
   showAssignStaffModal = false;
   assignDeptId = '';
@@ -143,6 +155,105 @@ export class ClassesDepartmentsComponent {
     return [...idSet]
       .map((id) => list.find((s) => s.id === id)?.displayName ?? id)
       .join(', ');
+  }
+
+  /** Flattened list of all class groups across all departments. */
+  allClasses(): { dept: Department; c: DepartmentClass }[] {
+    const depts = this.departmentsStore.departments();
+    const out: { dept: Department; c: DepartmentClass }[] = [];
+    for (const d of depts) {
+      for (const c of d.classes ?? []) out.push({ dept: d, c });
+    }
+    return out;
+  }
+
+  allClassesCount(): number {
+    return this.allClasses().length;
+  }
+
+  viewClassWithDept(): { dept: Department; c: DepartmentClass } | undefined {
+    const dept = this.departmentsStore.departments().find((d) => d.id === this.viewClassDeptId);
+    if (!dept) return undefined;
+    const c = dept.classes.find((x) => x.id === this.viewClassId);
+    if (!c) return undefined;
+    return { dept, c };
+  }
+
+  editClassWithDept(): { dept: Department; c: DepartmentClass } | undefined {
+    const dept = this.departmentsStore.departments().find((d) => d.id === this.editClassDeptId);
+    if (!dept) return undefined;
+    const c = dept.classes.find((x) => x.id === this.editClassId);
+    if (!c) return undefined;
+    return { dept, c };
+  }
+
+  studentDisplayName(id: string): string {
+    const s = this.studentStore.students().find((x) => x.id === id);
+    return s?.displayName ?? id;
+  }
+
+  classAssignedStudentsCount(c: DepartmentClass): number {
+    return c.assignedStudentIds?.length ?? 0;
+  }
+
+  classAssignedStudentsSummary(c: DepartmentClass): string {
+    const ids = c.assignedStudentIds ?? [];
+    if (ids.length === 0) return '—';
+    return ids.map((id) => this.studentDisplayName(id)).join(', ');
+  }
+
+  openClassViewModal(dept: Department, c: DepartmentClass): void {
+    this.viewClassDeptId = dept.id;
+    this.viewClassId = c.id;
+    this.showClassViewModal = true;
+  }
+
+  closeClassViewModal(): void {
+    this.showClassViewModal = false;
+    this.viewClassDeptId = '';
+    this.viewClassId = '';
+  }
+
+  openClassEditModal(dept: Department, c: DepartmentClass): void {
+    this.editClassDeptId = dept.id;
+    this.editClassId = c.id;
+    this.editClassName = c.name;
+    this.editClassFormError = '';
+    this.showClassEditModal = true;
+    // Close view if open to avoid overlapping dialogs.
+    if (this.showClassViewModal) this.closeClassViewModal();
+  }
+
+  closeClassEditModal(): void {
+    this.showClassEditModal = false;
+    this.editClassDeptId = '';
+    this.editClassId = '';
+    this.editClassName = '';
+    this.editClassFormError = '';
+  }
+
+  async saveClassEdit(): Promise<void> {
+    this.editClassFormError = '';
+    const before = this.snapshotDepartments();
+
+    const result = this.departmentsStore.updateClassNameInDepartment(
+      this.editClassDeptId,
+      this.editClassId,
+      this.editClassName,
+    );
+    if (!result.ok) {
+      this.editClassFormError = result.error;
+      return;
+    }
+
+    const commit = await this.departmentsStore.commitAndReload();
+    if (!commit.ok) {
+      this.departmentsStore.restoreInMemory(before);
+      this.editClassFormError = commit.error;
+      return;
+    }
+
+    this.closeClassEditModal();
   }
 
   openAssignStaffModal(d: Department): void {

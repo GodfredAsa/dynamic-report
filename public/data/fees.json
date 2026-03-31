@@ -1,11 +1,45 @@
 [
   {
-    "id": "usage-1",
-    "date": "2026-03-26",
+    "id": "fee-3",
+    "date": "2026-03-31",
     "type": "Feeding",
-    "amount": 20,
+    "amount": 10000,
     "currency": "GHS",
-    "usedByName": "Abi Administrator",
-    "usedByEmail": "abi@dynamic.com"
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com",
+    "uses": [
+      {
+        "amountUsed": 2000,
+        "purpose": "Expenses"
+      }
+    ]
+  },
+  {
+    "id": "fee-2",
+    "date": "2026-03-31",
+    "type": "Utility",
+    "amount": 9000,
+    "currency": "GHS",
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com",
+    "uses": [
+      {
+        "amountUsed": 100,
+        "purpose": "Toiletries"
+      },
+      {
+        "amountUsed": 3000,
+        "purpose": "salaries"
+      }
+    ]
+  },
+  {
+    "id": "fee-1",
+    "date": "2026-03-31",
+    "type": "Utility",
+    "amount": 100,
+    "currency": "GHS",
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com"
   }
 ]

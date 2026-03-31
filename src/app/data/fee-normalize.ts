@@ -1,4 +1,4 @@
-import { FeeRecord, FEE_TYPES, FeeType } from './fee.model';
+import { FeeRecord, FeeUse, FEE_TYPES, FeeType } from './fee.model';
 
 const TYPE_SET = new Set<string>(FEE_TYPES);
 
@@ -41,6 +41,22 @@ export function normalizeFeeRecord(raw: Partial<FeeRecord>): FeeRecord | null {
     .trim()
     .toLowerCase();
   if (!id || !addedByName || !addedByEmail) return null;
+
+  let uses: FeeUse[] | undefined;
+  if (Array.isArray((raw as any).uses)) {
+    uses = (raw as any).uses
+      .map((u: any): FeeUse => {
+        const amt = Number(u?.amountUsed);
+        const amountUsed = Number.isFinite(amt) ? Math.max(0, amt) : 0;
+        const purpose = String(u?.purpose ?? '').trim();
+        return { amountUsed, purpose };
+      })
+      .filter((u: FeeUse) => u.amountUsed > 0 || u.purpose !== '');
+    if ((uses as FeeUse[]).length === 0) {
+      uses = undefined;
+    }
+  }
+
   return {
     id,
     date,
@@ -49,6 +65,7 @@ export function normalizeFeeRecord(raw: Partial<FeeRecord>): FeeRecord | null {
     currency,
     addedByName,
     addedByEmail,
+    uses,
   };
 }
 

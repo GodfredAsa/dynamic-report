@@ -1,7 +1,7 @@
 [
   {
     "id": "DEPT-01",
-    "name": "KG DEPARTMENT",
+    "name": "KG",
     "head": "Abi Administrator",
     "headStaffId": "usr-1",
     "description": "Kindergarten and early years.",
@@ -51,11 +51,27 @@
   },
   {
     "id": "DEPT-03",
-    "name": "KG",
-    "head": "Dr. Sarah Jenkins",
-    "headStaffId": "usr-2",
-    "description": "Teaching and learning",
-    "classes": [],
+    "name": "LOWER PRIMARY",
+    "head": "Ms. Ama Boateng",
+    "headStaffId": "usr-4",
+    "description": "CLASS 1 - 3",
+    "classes": [
+      {
+        "id": "class-DEPT-03-01",
+        "name": "CLASS 1 (ONE)",
+        "assignedStudentIds": []
+      },
+      {
+        "id": "class-DEPT-03-02",
+        "name": "CLASS 2 (TWO)",
+        "assignedStudentIds": []
+      },
+      {
+        "id": "class-DEPT-03-03",
+        "name": "CLASS 3 (THREE)",
+        "assignedStudentIds": []
+      }
+    ],
     "members": 0,
     "students": 0,
     "location": "",

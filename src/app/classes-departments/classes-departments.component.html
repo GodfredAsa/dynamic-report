@@ -176,7 +176,7 @@
         <h3 class="text-slate-200 font-medium text-sm mb-2">Assign class to department</h3>
         <p class="text-slate-500 text-xs mb-4">
           Add one class group at a time (e.g. <span class="text-slate-400">Form 2 Gold</span>). The department must already exist in
-          <strong class="text-slate-400">Saved departments</strong> (section below).
+          <strong class="text-slate-400">Lists of departments</strong> (section below).
         </p>
         @if (assignClassError) {
           <div
@@ -221,9 +221,73 @@
   </details>
 
   <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <summary
+      class="w-full flex items-center justify-between gap-3 px-6 py-4 cursor-pointer list-none hover:bg-slate-800/40 transition">
+      <div class="min-w-0">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">
+          Lists of classes ({{ allClassesCount() }})
+        </h2>
+        <p class="text-slate-500 text-xs mt-0.5">View and rename class groups</p>
+      </div>
+      <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0" aria-hidden="true"></i>
+    </summary>
+    <div class="p-6 md:p-8">
+      <div class="overflow-x-auto">
+        @if (allClasses().length === 0) {
+          <p class="p-8 text-center text-slate-500 text-sm">
+            No class groups yet. Use the <strong class="text-slate-400">Classes</strong> section to add classes to departments.
+          </p>
+        } @else {
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-800/80 text-xs uppercase text-slate-400">
+              <tr>
+                <th class="px-4 py-3 font-medium min-w-[10rem]">Department</th>
+                <th class="px-4 py-3 font-medium">Class name</th>
+                <th class="px-4 py-3 font-medium min-w-[11rem]">Class ID</th>
+                <th class="px-4 py-3 font-medium min-w-[10rem]">Assigned students</th>
+                <th class="px-4 py-3 font-medium min-w-[10rem] text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/60">
+              @for (entry of allClasses(); track entry.dept.id + ':' + entry.c.id) {
+                <tr class="hover:bg-slate-800/40">
+                  <td class="px-4 py-3">{{ entry.dept.name }}</td>
+                  <td class="px-4 py-3">{{ entry.c.name }}</td>
+                  <td class="px-4 py-3 font-mono text-emerald-400/90">{{ entry.c.id }}</td>
+                  <td
+                    class="px-4 py-3 text-slate-400 text-xs max-w-[14rem] truncate align-top"
+                    [attr.title]="classAssignedStudentsSummary(entry.c)">
+                    {{ classAssignedStudentsSummary(entry.c) }}
+                  </td>
+                  <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                    <button
+                      type="button"
+                      (click)="openClassViewModal(entry.dept, entry.c)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      View
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openClassEditModal(entry.dept, entry.c)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Update
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  </details>
+
+  <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
     <summary class="w-full flex items-center justify-between gap-3 px-6 py-4 cursor-pointer list-none hover:bg-slate-800/40 transition">
       <div class="min-w-0">
-        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Saved departments</h2>
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">
+          Lists of departments ({{ departments().length }})
+        </h2>
         <p class="text-slate-500 text-xs mt-0.5">
           {{ departments().length }} on file — view, update, assign staff and students
         </p>
@@ -364,6 +428,141 @@
       ← Back to modules
     </a>
   </p>
+
+  @if (showClassViewModal) {
+    <div
+      class="fixed inset-0 z-[56] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="class-view-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeClassViewModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="class-view-modal-title" class="text-lg font-semibold text-emerald-400">Class details</h2>
+          <button
+            type="button"
+            (click)="closeClassViewModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5 space-y-4 text-sm text-slate-300">
+          @if (viewClassWithDept(); as vc) {
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Department</dt>
+                <dd class="mt-0.5 text-slate-200">
+                  {{ vc.dept.name }} <span class="font-mono text-slate-500">({{ vc.dept.id }})</span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Class</dt>
+                <dd class="mt-0.5 text-slate-200">
+                  {{ vc.c.name }}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Class ID</dt>
+                <dd class="font-mono text-emerald-400/90 mt-0.5">{{ vc.c.id }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Assigned students</dt>
+                <dd class="text-slate-400 mt-0.5">{{ classAssignedStudentsSummary(vc.c) }}</dd>
+              </div>
+            </dl>
+            <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-600/60">
+              <button
+                type="button"
+                (click)="openClassEditModal(vc.dept, vc.c)"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+                Update class
+              </button>
+              <button
+                type="button"
+                (click)="closeClassViewModal()"
+                class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+                Close
+              </button>
+            </div>
+          } @else {
+            <div class="text-slate-400">
+              This class no longer exists.
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showClassEditModal) {
+    <div
+      class="fixed inset-0 z-[57] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="class-edit-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeClassEditModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="class-edit-modal-title" class="text-lg font-semibold text-emerald-400">Update class</h2>
+          <button
+            type="button"
+            (click)="closeClassEditModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          @if (editClassWithDept(); as ec) {
+            <p class="text-slate-500 text-xs mb-4">
+              Department <span class="font-medium text-slate-200">{{ ec.dept.name }}</span> · Class ID <span class="font-mono text-emerald-400/90">{{ editClassId }}</span> (cannot be changed)
+            </p>
+          }
+          @if (editClassFormError) {
+            <div
+              class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+              role="alert">
+              {{ editClassFormError }}
+            </div>
+          }
+          <form (ngSubmit)="saveClassEdit()" class="space-y-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Class name <span class="text-red-400">*</span></label>
+              <input
+                type="text"
+                name="editClassName"
+                [(ngModel)]="editClassName"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div class="flex flex-wrap gap-2 pt-4 border-t border-slate-600/60">
+              <button
+                type="submit"
+                class="px-4 py-2 bg-[#069668] hover:bg-[#058559] text-white rounded-lg text-sm font-medium transition">
+                Save changes
+              </button>
+              <button
+                type="button"
+                (click)="closeClassEditModal()"
+                class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
 
   @if (showDepartmentViewModal) {
     <div
@@ -553,7 +752,7 @@
             </div>
             <p class="text-slate-500 text-[10px]">
               Classes are managed in <strong class="text-slate-400">Classes</strong> and the list in
-              <strong class="text-slate-400">Saved departments</strong> (remove with ×).
+              <strong class="text-slate-400">Lists of departments</strong> (remove with ×).
             </p>
             <div>
               <label class="block text-xs text-slate-400 mb-1">Status</label>

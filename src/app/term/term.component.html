@@ -1,0 +1,160 @@
+<div class="w-full max-w-5xl mx-auto">
+  <header class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-start gap-4">
+      <a
+        routerLink="/modules"
+        class="mt-1 text-slate-400 hover:text-emerald-400 transition text-sm shrink-0"
+        title="Back to modules">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        <span class="sr-only">Back to modules</span>
+      </a>
+      <div>
+        <h1 class="text-2xl font-semibold text-emerald-400 flex items-center gap-3">
+          <i class="fa-solid fa-calendar-days text-emerald-500" aria-hidden="true"></i>
+          Term settings
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">
+          Active term label and currency are stored in
+          <code class="text-slate-500">public/data/term-fees.json</code> and reused by fees and reports.
+        </p>
+        @if (user(); as name) {
+          <p class="text-slate-500 text-xs mt-2">Signed in as {{ name }}</p>
+        }
+      </div>
+    </div>
+    <button
+      type="button"
+      (click)="logout()"
+      class="shrink-0 px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+      Log out
+    </button>
+  </header>
+
+  @if (loadError()) {
+    <div class="mb-4 px-3 py-2 rounded-lg bg-amber-950/40 border border-amber-600/40 text-amber-200 text-sm" role="status">
+      {{ loadError() }} — using a fallback summary in memory until the file is available.
+    </div>
+  }
+
+  <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-600/70 flex flex-wrap items-center justify-between gap-3">
+      <div class="min-w-0">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Current term summary</h2>
+        <p class="text-slate-500 text-xs mt-0.5">
+          Loaded from <code class="text-slate-400">/data/term-fees.json</code> when the data API is running.
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          (click)="reloadFromFile()"
+          class="px-3 py-1.5 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-xs font-medium transition">
+          <i class="fa-solid fa-rotate mr-1.5" aria-hidden="true"></i>Reload from file
+        </button>
+      </div>
+    </div>
+    <div class="px-6 py-4">
+      @if (!loaded()) {
+        <p class="text-slate-500 text-sm">Loading term-fees.json…</p>
+      } @else if (!summary()) {
+        <p class="text-slate-500 text-sm">No summary available in memory.</p>
+      } @else {
+        <div class="flex flex-wrap items-baseline gap-4 text-sm">
+          <div>
+            <span class="text-slate-400 text-xs uppercase tracking-wider">Term label</span>
+            <p class="text-slate-200 mt-1 font-medium">{{ summary()?.termLabel }}</p>
+          </div>
+          <div>
+            <span class="text-slate-400 text-xs uppercase tracking-wider">Currency</span>
+            <p class="text-slate-200 mt-1 font-mono text-xs">{{ summary()?.currency }}</p>
+          </div>
+          <div>
+            <span class="text-slate-400 text-xs uppercase tracking-wider">Total paid</span>
+            <p class="text-emerald-300 mt-1 font-mono text-xs">
+              {{ summary()?.currency }} {{ summary()?.totalPaid | number : '1.0-2' }}
+            </p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <div class="px-6 py-4 border-b border-slate-600/70">
+      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Edit term settings</h2>
+      <p class="text-slate-500 text-xs mt-0.5">
+        Update the label shown on reports (e.g. <span class="text-slate-300">Term 1 · 2026</span>) and the default currency code.
+      </p>
+    </div>
+    <div class="px-6 py-5 space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Term label <span class="text-red-400">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="draftTermLabel"
+            [ngModelOptions]="{ standalone: true }"
+            placeholder="e.g. Term 1 · 2026"
+            class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Currency code <span class="text-red-400">*</span></label>
+          <input
+            type="text"
+            maxlength="3"
+            [(ngModel)]="draftCurrency"
+            [ngModelOptions]="{ standalone: true }"
+            class="input-field w-full max-w-[8rem] bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm uppercase tracking-wide outline-none focus:ring-2 focus:ring-emerald-500/50" />
+          <p class="text-slate-500 text-xs mt-1">ISO code, e.g. GHS, USD, EUR.</p>
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">Start date <span class="text-slate-500">(optional)</span></label>
+          <input
+            type="date"
+            [(ngModel)]="draftStartDate"
+            (ngModelChange)="recomputeWeeks()"
+            [ngModelOptions]="{ standalone: true }"
+            class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1">End date <span class="text-slate-500">(optional)</span></label>
+          <input
+            type="date"
+            [(ngModel)]="draftEndDate"
+            (ngModelChange)="recomputeWeeks()"
+            [ngModelOptions]="{ standalone: true }"
+            class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs text-slate-400 mb-1">Number of weeks</label>
+          <input
+            type="number"
+            [value]="computedWeeks"
+            readonly
+            class="input-field w-full max-w-[8rem] bg-slate-700/60 border border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-200 outline-none" />
+          <p class="text-slate-500 text-xs mt-1">
+            Calculated from start and end date (approximate whole weeks).
+          </p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 pt-1">
+        <button
+          type="button"
+          (click)="saveTermSettings()"
+          class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+          Save term
+        </button>
+        <button
+          type="button"
+          (click)="applyFromSummary()"
+          class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+          Reset from current
+        </button>
+      </div>
+      @if (message) {
+        <p class="text-slate-400 text-xs">{{ message }}</p>
+      }
+    </div>
+  </div>
+</div>
+

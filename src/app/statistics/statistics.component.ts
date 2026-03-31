@@ -126,6 +126,55 @@ export class StatisticsComponent {
       .sort((a, b) => a.currency.localeCompare(b.currency));
   }
 
+  /** Totals across all currencies, by fee type, for the donut. */
+  private feeTypeTotals(): { totalAll: number; byType: Record<FeeType, number> } {
+    const byType = {} as Record<FeeType, number>;
+    for (const t of FEE_TYPES) byType[t] = 0;
+    let totalAll = 0;
+    for (const f of this.feeStore.fees()) {
+      const amt = Number(f.amount) || 0;
+      byType[f.type] = (byType[f.type] ?? 0) + amt;
+      totalAll += amt;
+    }
+    return { totalAll, byType };
+  }
+
+  /** CSS conic-gradient donut for fee type contribution percentages. */
+  feeTypeDonutConic(): string {
+    const { totalAll, byType } = this.feeTypeTotals();
+    if (totalAll === 0) {
+      return 'conic-gradient(rgb(51 65 85) 0deg 360deg)';
+    }
+    const colors = ['#facc15', '#22c55e', '#38bdf8', '#a855f7'];
+    let start = 0;
+    const segments: string[] = [];
+    FEE_TYPES.forEach((t, idx) => {
+      const value = byType[t] ?? 0;
+      if (value <= 0) return;
+      const deg = (value / totalAll) * 360;
+      const end = start + deg;
+      const color = colors[idx % colors.length];
+      segments.push(`${color} ${start}deg ${end}deg`);
+      start = end;
+    });
+    if (segments.length === 0) {
+      return 'conic-gradient(rgb(51 65 85) 0deg 360deg)';
+    }
+    return `conic-gradient(${segments.join(',')})`;
+  }
+
+  feeTypePct(type: FeeType): number {
+    const { totalAll, byType } = this.feeTypeTotals();
+    if (!totalAll) return 0;
+    const value = byType[type] ?? 0;
+    return Math.round(((value / totalAll) * 1000)) / 10;
+  }
+
+  feeTypeAmount(type: FeeType): number {
+    const { byType } = this.feeTypeTotals();
+    return byType[type] ?? 0;
+  }
+
   /**
    * Each student counted once (by id) even if listed in multiple departments.
    */

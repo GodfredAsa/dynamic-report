@@ -10,4 +10,10 @@ export interface TermFeesSummary {
   currency: string;
   /** Sum of payments recorded for this term. */
   totalPaid: number;
+  /** Term start date (YYYY-MM-DD, optional). */
+  startDate?: string;
+  /** Term end date (YYYY-MM-DD, optional). */
+  endDate?: string;
+  /** Computed number of weeks between start and end (optional, for display). */
+  weeks?: number;
 }
