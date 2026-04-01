@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { AdminContextService } from '../auth/admin-context.service';
 import { DepartmentStoreService } from '../data/department-store.service';
 import { AppUserStoreService } from '../data/app-user-store.service';
 import { StudentStoreService } from '../data/student-store.service';
@@ -19,6 +20,7 @@ export class ClassesDepartmentsComponent {
   private departmentsStore = inject(DepartmentStoreService);
   private appUserStore = inject(AppUserStoreService);
   private studentStore = inject(StudentStoreService);
+  readonly adminCtx = inject(AdminContextService);
 
   user = this.auth.currentUser;
   departments = this.departmentsStore.departments;

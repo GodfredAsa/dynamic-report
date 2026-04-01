@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { AdminContextService } from '../auth/admin-context.service';
 import { PermissionsService } from '../auth/permissions.service';
 import { StudentStoreService, STUDENTS_JSON_PATH } from '../data/student-store.service';
 import { DepartmentStoreService } from '../data/department-store.service';
@@ -20,6 +21,7 @@ export class StudentsComponent {
   private studentStore = inject(StudentStoreService);
   private departmentStore = inject(DepartmentStoreService);
   readonly perms = inject(PermissionsService);
+  readonly adminCtx = inject(AdminContextService);
 
   user = this.auth.currentUser;
   students = this.studentStore.students;

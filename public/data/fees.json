@@ -1,5 +1,23 @@
 [
   {
+    "id": "fee-7",
+    "date": "2026-03-31",
+    "type": "Termly money",
+    "amount": 1000,
+    "currency": "GHS",
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com"
+  },
+  {
+    "id": "fee-6",
+    "date": "2026-03-31",
+    "type": "Utility",
+    "amount": 1000,
+    "currency": "GHS",
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com"
+  },
+  {
     "id": "fee-3",
     "date": "2026-03-31",
     "type": "Feeding",

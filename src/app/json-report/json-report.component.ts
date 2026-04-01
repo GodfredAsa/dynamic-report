@@ -187,6 +187,10 @@ export class JsonReportComponent {
     return missing;
   }
 
+  generalMissing(): string[] {
+    return this.validateGeneral();
+  }
+
   private buildFormDataForPupil(p: ParsedPupil): ReportFormData {
     const feesBalanceNum = Number(p.feesBalance) || 0;
     const feesNextNum = Number(p.feesNextTerm) || 0;
@@ -207,7 +211,9 @@ export class JsonReportComponent {
     this.message = '';
     const missing = this.validateGeneral();
     if (missing.length > 0) {
-      this.parseError = `Fill required general fields: ${missing.join(', ')}`;
+      const msg = `Fill required general fields first: ${missing.join(', ')}`;
+      this.parseError = msg;
+      window.alert(msg);
       return;
     }
     const reportId = `json-${p.no || p.name}`;

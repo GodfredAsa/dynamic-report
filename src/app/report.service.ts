@@ -188,6 +188,7 @@ export class ReportService {
     const expectedAttendanceText = f.expectedAttendance
       ? this.escapeHtml(f.expectedAttendance)
       : '';
+    const reportDateText = f.reportDate ? this.escapeHtml(f.reportDate) : '';
     const vacationDateText = f.vacationDate ? this.escapeHtml(f.vacationDate) : '';
 
     return `
@@ -207,6 +208,7 @@ export class ReportService {
   <div class="report-student-line">
     <span><strong>Name</strong> ${this.escapeHtml(f.studentName || '')}</span>
     <span><strong>${this.escapeHtml(f.reportClass || 'FORM')}</strong></span>
+    <span><strong>Report date</strong> ${reportDateText}</span>
     <span><strong>Attendance</strong> ${attendanceText}</span>
     <span><strong>Expected Attendance</strong> ${expectedAttendanceText}</span>
     <span><strong>Vacation</strong> ${vacationDateText}</span>

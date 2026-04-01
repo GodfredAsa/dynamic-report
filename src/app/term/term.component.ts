@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { AdminContextService } from '../auth/admin-context.service';
 import { PermissionsService } from '../auth/permissions.service';
 import { TermFeesStoreService } from '../data/term-fees-store.service';
 import { TermFeesSummary } from '../data/term-fees.model';
@@ -17,6 +18,7 @@ export class TermComponent {
   private router = inject(Router);
   private termStore = inject(TermFeesStoreService);
   readonly perms = inject(PermissionsService);
+  readonly adminCtx = inject(AdminContextService);
 
   user = this.auth.currentUser;
   summary = this.termStore.summary;
