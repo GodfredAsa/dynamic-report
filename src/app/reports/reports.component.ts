@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { MultiReportComponent } from '../multi-report/multi-report.component';
 import { BatchReportComponent } from '../batch-report/batch-report.component';
 import { SingleReportComponent } from '../single-report/single-report.component';
+import { JsonReportComponent } from '../json-report/json-report.component';
 import { AuthService } from '../auth/auth.service';
 
 @Component({
@@ -13,6 +14,7 @@ import { AuthService } from '../auth/auth.service';
     RouterLink,
     MultiReportComponent,
     BatchReportComponent,
+    JsonReportComponent,
     SingleReportComponent,
   ],
   templateUrl: './reports.component.html',

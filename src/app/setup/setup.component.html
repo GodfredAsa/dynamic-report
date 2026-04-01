@@ -32,6 +32,19 @@
     <p class="text-slate-500 text-sm">
       Create / update / delete actions live here. Other modules are view-only.
     </p>
+
+    <div class="mt-4 flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        (click)="clearFeesAndUsage()"
+        class="px-4 py-2 bg-red-900/50 hover:bg-red-900/70 border border-red-600/50 text-red-200 rounded-lg text-sm font-medium transition">
+        Clear fees data (fees + usage)
+      </button>
+      <span class="text-slate-500 text-xs">Only clears <code class="text-slate-400">fees.json</code> and <code class="text-slate-400">fees-usage.json</code>.</span>
+    </div>
+    @if (clearFeesMessage) {
+      <p class="text-slate-400 text-xs mt-3">{{ clearFeesMessage }}</p>
+    }
   </div>
 
   <div class="space-y-6">

@@ -74,7 +74,7 @@ export class ModulesComponent {
       route: '/fees',
     },
     {
-      title: 'STATISTICS & PERFORMANCE',
+      title: 'METRICS & PERFORMANCE',
       description:
         'View school-wide and class-level analytics: grade averages, distributions, and progress over time.',
       iconClass: 'fa-solid fa-chart-line',

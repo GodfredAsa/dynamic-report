@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { AdminContextService } from '../auth/admin-context.service';
 import { PermissionsService } from '../auth/permissions.service';
 import { FeeStoreService, FEES_JSON_PATH } from '../data/fee-store.service';
 import { FeeRecord, FEE_TYPES, FeeType } from '../data/fee.model';
@@ -17,6 +18,7 @@ export class FeesManagementComponent {
   private router = inject(Router);
   private feeStore = inject(FeeStoreService);
   readonly perms = inject(PermissionsService);
+  readonly adminCtx = inject(AdminContextService);
 
   user = this.auth.currentUser;
   fees = this.feeStore.fees;

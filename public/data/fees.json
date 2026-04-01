@@ -1,5 +1,23 @@
 [
   {
+    "id": "fee-7",
+    "date": "2026-03-31",
+    "type": "Termly money",
+    "amount": 1000,
+    "currency": "GHS",
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com"
+  },
+  {
+    "id": "fee-6",
+    "date": "2026-03-31",
+    "type": "Utility",
+    "amount": 1000,
+    "currency": "GHS",
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com"
+  },
+  {
     "id": "fee-3",
     "date": "2026-03-31",
     "type": "Feeding",
@@ -38,6 +56,24 @@
     "date": "2026-03-31",
     "type": "Utility",
     "amount": 100,
+    "currency": "GHS",
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com"
+  },
+  {
+    "id": "fee-4",
+    "date": "2026-03-23",
+    "type": "Utility",
+    "amount": 1200,
+    "currency": "GHS",
+    "addedByName": "Abi Administrator",
+    "addedByEmail": "abi@dynamic.com"
+  },
+  {
+    "id": "fee-5",
+    "date": "2026-03-11",
+    "type": "Classes",
+    "amount": 4500,
     "currency": "GHS",
     "addedByName": "Abi Administrator",
     "addedByEmail": "abi@dynamic.com"

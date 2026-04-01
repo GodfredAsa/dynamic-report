@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { AdminContextService } from '../auth/admin-context.service';
 import { AppUserStoreService, STAFF_JSON_PATH } from '../data/app-user-store.service';
 import { APP_ROLES, AppRole, AppUser, STAFF_CARD_TYPES, STAFF_CATEGORIES } from '../data/app-user.model';
 
@@ -15,6 +16,7 @@ export class StaffComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
   private staffStore = inject(AppUserStoreService);
+  readonly adminCtx = inject(AdminContextService);
 
   user = this.auth.currentUser;
   staff = this.staffStore.users;

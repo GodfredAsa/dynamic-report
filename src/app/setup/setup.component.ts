@@ -8,6 +8,8 @@ import { ClassesDepartmentsComponent } from '../classes-departments/classes-depa
 import { StudentsComponent } from '../students/students.component';
 import { FeesManagementComponent } from '../fees-management/fees-management.component';
 import { TermComponent } from '../term/term.component';
+import { FeeStoreService } from '../data/fee-store.service';
+import { FeeUsageStoreService } from '../data/fee-usage-store.service';
 
 @Component({
   selector: 'app-setup',
@@ -26,8 +28,11 @@ export class SetupComponent implements OnDestroy {
   private auth = inject(AuthService);
   private router = inject(Router);
   private adminCtx = inject(AdminContextService);
+  private feeStore = inject(FeeStoreService);
+  private feeUsageStore = inject(FeeUsageStoreService);
 
   user = this.auth.currentUser;
+  clearFeesMessage = '';
 
   constructor() {
     this.adminCtx.enterSetup();
@@ -40,6 +45,24 @@ export class SetupComponent implements OnDestroy {
   logout(): void {
     this.auth.logout();
     void this.router.navigateByUrl('/login');
+  }
+
+  async clearFeesAndUsage(): Promise<void> {
+    this.clearFeesMessage = '';
+    if (!window.confirm('This will permanently clear fees.json and fees-usage.json. Continue?')) return;
+    const beforeFees = [...this.feeStore.fees()];
+    const beforeUsages = [...this.feeUsageStore.usages()];
+    this.feeStore.restoreInMemory([]);
+    this.feeUsageStore.restoreInMemory([]);
+    const c1 = await this.feeStore.commitAndReload();
+    const c2 = await this.feeUsageStore.commitAndReload();
+    if (!c1.ok || !c2.ok) {
+      this.feeStore.restoreInMemory(beforeFees);
+      this.feeUsageStore.restoreInMemory(beforeUsages);
+      this.clearFeesMessage = (!c1.ok ? c1.error : c2.ok ? '' : c2.error) || 'Could not clear fees data.';
+      return;
+    }
+    this.clearFeesMessage = 'Cleared fees.json and fees-usage.json.';
   }
 }
 
