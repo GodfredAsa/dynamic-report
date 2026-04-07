@@ -8,7 +8,7 @@ import { AppUserStoreService } from '../data/app-user-store.service';
 import { FeeStoreService } from '../data/fee-store.service';
 import { FEE_TYPES, FeeType } from '../data/fee.model';
 
-/** Unique students that appear in at least one department’s `assignedStudentIds`, by gender. */
+/** Gender totals across all people in the system (staff + students). */
 export interface AssignedGenderTotals {
   male: number;
   female: number;
@@ -304,23 +304,21 @@ export class StatisticsComponent {
   }
 
   /**
-   * Each student counted once (by id) even if listed in multiple departments.
+   * Gender totals across all people in the system (staff + students).
+   *
+   * Notes:
+   * - Students always have gender.
+   * - Staff gender is normalized to male/female on load (defaults to male if missing).
    */
   assignedGenderTotals(): AssignedGenderTotals {
-    const byId = new Map(this.studentStore.students().map((s) => [s.id, s]));
-    const seen = new Set<string>();
-    for (const d of this.departmentStore.departments()) {
-      for (const sid of d.assignedStudentIds ?? []) {
-        const t = String(sid ?? '').trim();
-        if (t) seen.add(t);
-      }
-    }
     let male = 0;
     let female = 0;
-    for (const id of seen) {
-      const st = byId.get(id);
-      if (!st) continue;
-      if (st.gender === 'male') male++;
+    for (const s of this.studentStore.students()) {
+      if (s.gender === 'male') male++;
+      else female++;
+    }
+    for (const u of this.staffStore.users()) {
+      if (u.gender === 'male') male++;
       else female++;
     }
     return { male, female, total: male + female };

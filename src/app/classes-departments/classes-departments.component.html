@@ -70,9 +70,10 @@
       automatically when you add, remove, or import — if the data API is running.
     </p>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div>
-        <h3 class="text-slate-200 font-medium text-sm mb-4">Add department</h3>
+    @if (adminCtx.inSetup()) {
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-slate-200 font-medium text-sm mb-4">Add department</h3>
         <p class="text-slate-500 text-xs mb-4">
           <code class="text-slate-400">id</code> is generated automatically (<span class="text-slate-400">DEPT-01</span>,
           …). <strong class="text-slate-400">Name</strong> must be unique. Choose the
@@ -133,10 +134,10 @@
             </button>
           </div>
         </form>
-      </div>
+        </div>
 
-      <div>
-        <h3 class="text-slate-200 font-medium text-sm mb-4">Import JSON</h3>
+        <div>
+          <h3 class="text-slate-200 font-medium text-sm mb-4">Import JSON</h3>
         <p class="text-slate-500 text-xs mb-3">Upload one object or an array of objects with the same fields.</p>
         <input
           type="file"
@@ -160,8 +161,13 @@
         @if (importMessage) {
           <p class="text-slate-400 text-xs">{{ importMessage }}</p>
         }
+        </div>
       </div>
-    </div>
+    } @else {
+      <p class="text-slate-500 text-sm">
+        Department creation, imports, and other setup actions are available under <strong class="text-slate-300">SETUP</strong>.
+      </p>
+    }
   </div>
   </details>
 
@@ -174,8 +180,9 @@
       <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0" aria-hidden="true"></i>
     </summary>
     <div class="p-6 md:p-8">
-      <div class="rounded-lg border border-slate-600/60 bg-slate-900/25 px-4 py-5">
-        <h3 class="text-slate-200 font-medium text-sm mb-2">Assign class to department</h3>
+      @if (adminCtx.inSetup()) {
+        <div class="rounded-lg border border-slate-600/60 bg-slate-900/25 px-4 py-5">
+          <h3 class="text-slate-200 font-medium text-sm mb-2">Assign class to department</h3>
         <p class="text-slate-500 text-xs mb-4">
           Add one class group at a time (e.g. <span class="text-slate-400">Form 2 Gold</span>). The department must already exist in
           <strong class="text-slate-400">Lists of departments</strong> (section below).
@@ -218,7 +225,12 @@
             </button>
           </div>
         </div>
-      </div>
+        </div>
+      } @else {
+        <p class="text-slate-500 text-sm">
+          Class creation and assignment are available under <strong class="text-slate-300">SETUP</strong>.
+        </p>
+      }
     </div>
   </details>
 
@@ -268,12 +280,14 @@
                       class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
                       View
                     </button>
-                    <button
-                      type="button"
-                      (click)="openClassEditModal(entry.dept, entry.c)"
-                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
-                      Update
-                    </button>
+                    @if (adminCtx.inSetup()) {
+                      <button
+                        type="button"
+                        (click)="openClassEditModal(entry.dept, entry.c)"
+                        class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                        Update
+                      </button>
+                    }
                   </td>
                 </tr>
               }
@@ -350,13 +364,15 @@
                         <span
                           class="inline-flex items-center gap-1 rounded-md bg-slate-700/70 border border-slate-600/70 px-1.5 py-0.5 text-[11px] text-slate-200">
                           {{ c.name }}
-                          <button
-                            type="button"
-                            (click)="removeDepartmentClass(d, c.id)"
-                            class="text-red-400 hover:text-red-300 font-semibold leading-none"
-                            [attr.title]="'Remove ' + c.name">
-                            ×
-                          </button>
+                          @if (adminCtx.inSetup()) {
+                            <button
+                              type="button"
+                              (click)="removeDepartmentClass(d, c.id)"
+                              class="text-red-400 hover:text-red-300 font-semibold leading-none"
+                              [attr.title]="'Remove ' + c.name">
+                              ×
+                            </button>
+                          }
                         </span>
                       }
                     </div>
@@ -389,30 +405,32 @@
                     class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
                     View
                   </button>
-                  <button
-                    type="button"
-                    (click)="openEditModal(d)"
-                    class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
-                    Update
-                  </button>
-                  <button
-                    type="button"
-                    (click)="openAssignStaffModal(d)"
-                    class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
-                    Staff
-                  </button>
-                  <button
-                    type="button"
-                    (click)="openAssignStudentsModal(d)"
-                    class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
-                    Students
-                  </button>
-                  <button
-                    type="button"
-                    (click)="removeDepartment(d.id)"
-                    class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
-                    Remove
-                  </button>
+                  @if (adminCtx.inSetup()) {
+                    <button
+                      type="button"
+                      (click)="openEditModal(d)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Update
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openAssignStaffModal(d)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Staff
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openAssignStudentsModal(d)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Students
+                    </button>
+                    <button
+                      type="button"
+                      (click)="removeDepartment(d.id)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Remove
+                    </button>
+                  }
                 </td>
               </tr>
             }
