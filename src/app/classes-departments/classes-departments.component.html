@@ -1,0 +1,964 @@
+<div class="w-full max-w-6xl mx-auto">
+  <header class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-start gap-4">
+      <a
+        routerLink="/modules"
+        class="mt-1 text-slate-400 hover:text-emerald-400 transition text-sm shrink-0"
+        title="Back to modules">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        <span class="sr-only">Back to modules</span>
+      </a>
+      <div>
+        <h1 class="text-2xl font-semibold text-emerald-400 flex items-center gap-3">
+          <i class="fa-solid fa-school text-emerald-500" aria-hidden="true"></i>
+          Classes &amp; departments
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">
+          Departments are read from <code class="text-slate-500">public/data/departments.json</code>. Adding or removing
+          rows saves that file (dev: run <code class="text-slate-500">npm run data-api</code> next to
+          <code class="text-slate-500">ng serve</code>), then the list reloads from disk.
+        </p>
+        @if (user(); as name) {
+          <p class="text-slate-500 text-xs mt-2">Signed in as {{ name }}</p>
+        }
+      </div>
+    </div>
+    @if (!adminCtx.inSetup()) {
+      <button
+        type="button"
+        (click)="logout()"
+        class="shrink-0 px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+        Log out
+      </button>
+    }
+  </header>
+
+  @if (departmentsLoadError()) {
+    <div class="mb-4 px-3 py-2 rounded-lg bg-amber-950/40 border border-amber-600/40 text-amber-200 text-sm" role="status">
+      {{ departmentsLoadError() }} — using an empty list until the file is available.
+    </div>
+  }
+
+  <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <summary class="w-full flex items-center justify-between gap-3 px-6 py-4 cursor-pointer list-none hover:bg-slate-800/40 transition">
+      <div class="min-w-0">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Departments</h2>
+        <p class="text-slate-500 text-xs mt-0.5">Add or import departments, reload from disk, export JSON</p>
+      </div>
+      <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0" aria-hidden="true"></i>
+    </summary>
+    <div class="p-6 md:p-8">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-600/60">
+      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Department data</h2>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          (click)="reloadDepartmentsFromFile()"
+          class="px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+          <i class="fa-solid fa-rotate mr-2" aria-hidden="true"></i>Reload from file
+        </button>
+        <button
+          type="button"
+          (click)="exportJson()"
+          class="px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+          <i class="fa-solid fa-download mr-2" aria-hidden="true"></i>Download JSON
+        </button>
+      </div>
+    </div>
+    <p class="text-slate-500 text-xs mb-6 -mt-2">
+      <strong class="text-slate-400">Persistence:</strong> use Download only for a backup. Save to disk happens
+      automatically when you add, remove, or import — if the data API is running.
+    </p>
+
+    @if (adminCtx.inSetup()) {
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-slate-200 font-medium text-sm mb-4">Add department</h3>
+        <p class="text-slate-500 text-xs mb-4">
+          <code class="text-slate-400">id</code> is generated automatically (<span class="text-slate-400">DEPT-01</span>,
+          …). <strong class="text-slate-400">Name</strong> must be unique. Choose the
+          <strong class="text-slate-400">head</strong> from staff in
+          <code class="text-slate-400">staff.json</code>. New departments always start with <strong class="text-slate-400">no classes</strong> — use the
+          <strong class="text-slate-400">Classes</strong> section after saving.
+        </p>
+        @if (formError) {
+          <div
+            class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+            role="alert">
+            {{ formError }}
+          </div>
+        }
+        <form (ngSubmit)="addDepartment()" class="space-y-3">
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Name <span class="text-red-400">*</span></label>
+            <input
+              type="text"
+              name="name"
+              [(ngModel)]="draft.name"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+              placeholder="Unique department name" />
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Department head <span class="text-red-400">*</span></label>
+            <select
+              name="headStaffId"
+              [(ngModel)]="draft.headStaffId"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+              <option value="">— Choose a staff user —</option>
+              @for (u of appUsers(); track u.id) {
+                <option [value]="u.id">{{ u.displayName }} ({{ u.email }})</option>
+              }
+            </select>
+            <p class="text-slate-500 text-xs mt-1.5">Staff list comes from <code class="text-slate-400">public/data/staff.json</code>.</p>
+          </div>
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Description <span class="text-red-400">*</span></label>
+            <textarea
+              name="description"
+              rows="3"
+              [(ngModel)]="draft.description"
+              placeholder="What this department covers, notes for staff, etc."
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50 resize-y min-h-[4.5rem]"></textarea>
+          </div>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button
+              type="submit"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+              Save department
+            </button>
+            <button
+              type="button"
+              (click)="applySample()"
+              class="px-4 py-2 border border-slate-500 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+              Fill sample fields
+            </button>
+          </div>
+        </form>
+        </div>
+
+        <div>
+          <h3 class="text-slate-200 font-medium text-sm mb-4">Import JSON</h3>
+        <p class="text-slate-500 text-xs mb-3">Upload one object or an array of objects with the same fields.</p>
+        <input
+          type="file"
+          accept=".json,application/json"
+          (change)="onImportFile($event)"
+          class="block w-full text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-600 file:text-white hover:file:bg-slate-500 mb-3" />
+        <div class="flex flex-wrap gap-2 mb-2">
+          <button
+            type="button"
+            (click)="runImport(false)"
+            class="px-3 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-slate-200 text-sm">
+            Merge by ID
+          </button>
+          <button
+            type="button"
+            (click)="runImport(true)"
+            class="px-3 py-2 bg-amber-900/40 hover:bg-amber-900/60 border border-amber-700/50 text-amber-200 text-sm rounded-lg">
+            Replace all
+          </button>
+        </div>
+        @if (importMessage) {
+          <p class="text-slate-400 text-xs">{{ importMessage }}</p>
+        }
+        </div>
+      </div>
+    } @else {
+      <p class="text-slate-500 text-sm">
+        Department creation, imports, and other setup actions are available under <strong class="text-slate-300">SETUP</strong>.
+      </p>
+    }
+  </div>
+  </details>
+
+  <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <summary class="w-full flex items-center justify-between gap-3 px-6 py-4 cursor-pointer list-none hover:bg-slate-800/40 transition">
+      <div class="min-w-0">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Classes</h2>
+        <p class="text-slate-500 text-xs mt-0.5">Attach class groups to departments (e.g. Form 1 A)</p>
+      </div>
+      <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0" aria-hidden="true"></i>
+    </summary>
+    <div class="p-6 md:p-8">
+      @if (adminCtx.inSetup()) {
+        <div class="rounded-lg border border-slate-600/60 bg-slate-900/25 px-4 py-5">
+          <h3 class="text-slate-200 font-medium text-sm mb-2">Assign class to department</h3>
+        <p class="text-slate-500 text-xs mb-4">
+          Add one class group at a time (e.g. <span class="text-slate-400">Form 2 Gold</span>). The department must already exist in
+          <strong class="text-slate-400">Lists of departments</strong> (section below).
+        </p>
+        @if (assignClassError) {
+          <div
+            class="mb-3 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+            role="alert">
+            {{ assignClassError }}
+          </div>
+        }
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+          <div class="md:col-span-1">
+            <label class="block text-xs text-slate-400 mb-1">Department</label>
+            <select
+              name="assignClassDeptId"
+              [(ngModel)]="assignClassDeptId"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+              <option value="">— Select —</option>
+              @for (d of departments(); track d.id) {
+                <option [value]="d.id">{{ d.name }} ({{ d.id }})</option>
+              }
+            </select>
+          </div>
+          <div class="md:col-span-1">
+            <label class="block text-xs text-slate-400 mb-1">Class name</label>
+            <input
+              type="text"
+              name="assignClassName"
+              [(ngModel)]="assignClassName"
+              placeholder="e.g. Form 1 A"
+              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+          </div>
+          <div class="md:col-span-1">
+            <button
+              type="button"
+              (click)="submitAssignClass()"
+              class="w-full md:w-auto px-4 py-2 bg-[#069668] hover:bg-[#058559] text-white rounded-lg text-sm font-medium transition">
+              Add class
+            </button>
+          </div>
+        </div>
+        </div>
+      } @else {
+        <p class="text-slate-500 text-sm">
+          Class creation and assignment are available under <strong class="text-slate-300">SETUP</strong>.
+        </p>
+      }
+    </div>
+  </details>
+
+  <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <summary
+      class="w-full flex items-center justify-between gap-3 px-6 py-4 cursor-pointer list-none hover:bg-slate-800/40 transition">
+      <div class="min-w-0">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">
+          Lists of classes ({{ allClassesCount() }})
+        </h2>
+        <p class="text-slate-500 text-xs mt-0.5">View and rename class groups</p>
+      </div>
+      <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0" aria-hidden="true"></i>
+    </summary>
+    <div class="p-6 md:p-8">
+      <div class="overflow-x-auto">
+        @if (allClasses().length === 0) {
+          <p class="p-8 text-center text-slate-500 text-sm">
+            No class groups yet. Use the <strong class="text-slate-400">Classes</strong> section to add classes to departments.
+          </p>
+        } @else {
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-800/80 text-xs uppercase text-slate-400">
+              <tr>
+                <th class="px-4 py-3 font-medium min-w-[10rem]">Department</th>
+                <th class="px-4 py-3 font-medium">Class name</th>
+                <th class="px-4 py-3 font-medium min-w-[11rem]">Class ID</th>
+                <th class="px-4 py-3 font-medium min-w-[10rem]">Assigned students</th>
+                <th class="px-4 py-3 font-medium min-w-[10rem] text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/60">
+              @for (entry of allClasses(); track entry.dept.id + ':' + entry.c.id) {
+                <tr class="hover:bg-slate-800/40">
+                  <td class="px-4 py-3">{{ entry.dept.name }}</td>
+                  <td class="px-4 py-3">{{ entry.c.name }}</td>
+                  <td class="px-4 py-3 font-mono text-emerald-400/90">{{ entry.c.id }}</td>
+                  <td
+                    class="px-4 py-3 text-slate-400 text-xs max-w-[14rem] truncate align-top"
+                    [attr.title]="classAssignedStudentsSummary(entry.c)">
+                    {{ classAssignedStudentsSummary(entry.c) }}
+                  </td>
+                  <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                    <button
+                      type="button"
+                      (click)="openClassViewModal(entry.dept, entry.c)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      View
+                    </button>
+                    @if (adminCtx.inSetup()) {
+                      <button
+                        type="button"
+                        (click)="openClassEditModal(entry.dept, entry.c)"
+                        class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                        Update
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  </details>
+
+  <details class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <summary class="w-full flex items-center justify-between gap-3 px-6 py-4 cursor-pointer list-none hover:bg-slate-800/40 transition">
+      <div class="min-w-0">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">
+          Lists of departments ({{ departments().length }})
+        </h2>
+        <p class="text-slate-500 text-xs mt-0.5">
+          {{ departments().length }} on file — view, update, assign staff and students
+        </p>
+      </div>
+      <i class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0" aria-hidden="true"></i>
+    </summary>
+    <div class="border-t border-slate-600/60 bg-slate-800/40 overflow-hidden">
+    <div class="px-4 py-3 border-b border-slate-600/60 flex flex-wrap items-center justify-between gap-3">
+      <p class="text-slate-300 text-sm font-medium">All departments</p>
+      <div class="flex flex-wrap gap-2">
+        <button
+          type="button"
+          (click)="reloadDepartmentsFromFile()"
+          class="px-3 py-1.5 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-xs font-medium transition">
+          <i class="fa-solid fa-rotate mr-1.5" aria-hidden="true"></i>Reload from file
+        </button>
+        <button
+          type="button"
+          (click)="exportJson()"
+          class="px-3 py-1.5 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-xs font-medium transition">
+          <i class="fa-solid fa-download mr-1.5" aria-hidden="true"></i>Download JSON
+        </button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      @if (departments().length === 0) {
+        <p class="p-8 text-center text-slate-500 text-sm">No departments yet. Use the <strong class="text-slate-400">Departments</strong> section above to add or import.</p>
+      } @else {
+        <table class="w-full text-left text-sm text-slate-300">
+          <thead class="bg-slate-800/80 text-xs uppercase text-slate-400">
+            <tr>
+              <th class="px-4 py-3 font-medium">ID</th>
+              <th class="px-4 py-3 font-medium">Name</th>
+              <th class="px-4 py-3 font-medium min-w-[10rem]">Description</th>
+              <th class="px-4 py-3 font-medium">Head</th>
+              <th class="px-4 py-3 font-medium min-w-[12rem]">Classes</th>
+              <th class="px-4 py-3 font-medium min-w-[8rem]">Assigned staff</th>
+              <th class="px-4 py-3 font-medium min-w-[8rem]">Assigned students</th>
+              <th class="px-4 py-3 font-medium">Status</th>
+              <th class="px-4 py-3 font-medium min-w-[14rem] text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-700/60">
+            @for (d of departments(); track d.id) {
+              <tr class="hover:bg-slate-800/40">
+                <td class="px-4 py-3 font-mono text-emerald-400/90">{{ d.id }}</td>
+                <td class="px-4 py-3">{{ d.name }}</td>
+                <td class="px-4 py-3 text-slate-400 text-xs max-w-[14rem] align-top line-clamp-3" [attr.title]="d.description">
+                  {{ d.description || '—' }}
+                </td>
+                <td class="px-4 py-3">{{ departmentHeadLabel(d) }}</td>
+                <td class="px-4 py-3 text-slate-400 text-xs align-top max-w-[16rem]">
+                  @if (d.classes.length === 0) {
+                    <span class="text-slate-600">—</span>
+                  } @else {
+                    <div class="flex flex-wrap gap-1">
+                      @for (c of d.classes; track c.id) {
+                        <span
+                          class="inline-flex items-center gap-1 rounded-md bg-slate-700/70 border border-slate-600/70 px-1.5 py-0.5 text-[11px] text-slate-200">
+                          {{ c.name }}
+                          @if (adminCtx.inSetup()) {
+                            <button
+                              type="button"
+                              (click)="removeDepartmentClass(d, c.id)"
+                              class="text-red-400 hover:text-red-300 font-semibold leading-none"
+                              [attr.title]="'Remove ' + c.name">
+                              ×
+                            </button>
+                          }
+                        </span>
+                      }
+                    </div>
+                  }
+                </td>
+                <td
+                  class="px-4 py-3 text-slate-400 text-xs max-w-[12rem] truncate align-top"
+                  [attr.title]="assignedStaffSummary(d)">
+                  {{ assignedStaffSummary(d) }}
+                </td>
+                <td
+                  class="px-4 py-3 text-slate-400 text-xs max-w-[12rem] truncate align-top"
+                  [attr.title]="assignedStudentsSummary(d)">
+                  {{ assignedStudentsSummary(d) }}
+                </td>
+                <td class="px-4 py-3">
+                  <span
+                    [class]="
+                      d.status === 'Active'
+                        ? 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-emerald-900/40 text-emerald-300'
+                        : 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-400'
+                    ">
+                    {{ d.status }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                  <button
+                    type="button"
+                    (click)="openViewModal(d)"
+                    class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                    View
+                  </button>
+                  @if (adminCtx.inSetup()) {
+                    <button
+                      type="button"
+                      (click)="openEditModal(d)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Update
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openAssignStaffModal(d)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Staff
+                    </button>
+                    <button
+                      type="button"
+                      (click)="openAssignStudentsModal(d)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Students
+                    </button>
+                    <button
+                      type="button"
+                      (click)="removeDepartment(d.id)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Remove
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+    </div>
+  </details>
+
+  <p class="text-center mt-8">
+    <a
+      routerLink="/modules"
+      class="text-emerald-400/90 text-sm font-medium hover:text-emerald-300 transition">
+      ← Back to modules
+    </a>
+  </p>
+
+  @if (showClassViewModal) {
+    <div
+      class="fixed inset-0 z-[56] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="class-view-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeClassViewModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="class-view-modal-title" class="text-lg font-semibold text-emerald-400">Class details</h2>
+          <button
+            type="button"
+            (click)="closeClassViewModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5 space-y-4 text-sm text-slate-300">
+          @if (viewClassWithDept(); as vc) {
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Department</dt>
+                <dd class="mt-0.5 text-slate-200">
+                  {{ vc.dept.name }} <span class="font-mono text-slate-500">({{ vc.dept.id }})</span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Class</dt>
+                <dd class="mt-0.5 text-slate-200">
+                  {{ vc.c.name }}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Class ID</dt>
+                <dd class="font-mono text-emerald-400/90 mt-0.5">{{ vc.c.id }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Assigned students</dt>
+                <dd class="text-slate-400 mt-0.5">{{ classAssignedStudentsSummary(vc.c) }}</dd>
+              </div>
+            </dl>
+            <div class="flex flex-wrap gap-2 pt-2 border-t border-slate-600/60">
+              <button
+                type="button"
+                (click)="openClassEditModal(vc.dept, vc.c)"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+                Update class
+              </button>
+              <button
+                type="button"
+                (click)="closeClassViewModal()"
+                class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+                Close
+              </button>
+            </div>
+          } @else {
+            <div class="text-slate-400">
+              This class no longer exists.
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showClassEditModal) {
+    <div
+      class="fixed inset-0 z-[57] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="class-edit-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeClassEditModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="class-edit-modal-title" class="text-lg font-semibold text-emerald-400">Update class</h2>
+          <button
+            type="button"
+            (click)="closeClassEditModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          @if (editClassWithDept(); as ec) {
+            <p class="text-slate-500 text-xs mb-4">
+              Department <span class="font-medium text-slate-200">{{ ec.dept.name }}</span> · Class ID <span class="font-mono text-emerald-400/90">{{ editClassId }}</span> (cannot be changed)
+            </p>
+          }
+          @if (editClassFormError) {
+            <div
+              class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+              role="alert">
+              {{ editClassFormError }}
+            </div>
+          }
+          <form (ngSubmit)="saveClassEdit()" class="space-y-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Class name <span class="text-red-400">*</span></label>
+              <input
+                type="text"
+                name="editClassName"
+                [(ngModel)]="editClassName"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div class="flex flex-wrap gap-2 pt-4 border-t border-slate-600/60">
+              <button
+                type="submit"
+                class="px-4 py-2 bg-[#069668] hover:bg-[#058559] text-white rounded-lg text-sm font-medium transition">
+                Save changes
+              </button>
+              <button
+                type="button"
+                (click)="closeClassEditModal()"
+                class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showDepartmentViewModal) {
+    <div
+      class="fixed inset-0 z-[55] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dept-view-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeViewModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        @if (viewDepartment(); as vd) {
+          <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+            <h2 id="dept-view-modal-title" class="text-lg font-semibold text-emerald-400">Department details</h2>
+            <button
+              type="button"
+              (click)="closeViewModal()"
+              class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+              aria-label="Close">
+              <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="p-5 space-y-4 text-sm text-slate-300">
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">ID</dt>
+                <dd class="font-mono text-emerald-400/90 mt-0.5">{{ vd.id }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Name</dt>
+                <dd class="text-slate-200 mt-0.5">{{ vd.name }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Description</dt>
+                <dd class="text-slate-400 mt-0.5 whitespace-pre-wrap">{{ vd.description || '—' }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Head</dt>
+                <dd class="mt-0.5">
+                  <span class="text-slate-200">{{ departmentHeadLabel(vd) }}</span>
+                  @if (departmentHeadEmail(vd)) {
+                    <span class="block text-xs text-slate-500 mt-0.5">{{ departmentHeadEmail(vd) }}</span>
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Status</dt>
+                <dd class="mt-0.5">
+                  <span
+                    [class]="
+                      vd.status === 'Active'
+                        ? 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-emerald-900/40 text-emerald-300'
+                        : 'inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-400'
+                    ">
+                    {{ vd.status }}
+                  </span>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Classes</dt>
+                <dd class="mt-0.5">
+                  @if (vd.classes.length === 0) {
+                    <span class="text-slate-600">—</span>
+                  } @else {
+                    <ul class="list-disc list-inside text-slate-400 space-y-0.5">
+                      @for (c of vd.classes; track c.id) {
+                        <li><span class="font-mono text-[11px] text-slate-500">{{ c.id }}</span> — {{ c.name }}</li>
+                      }
+                    </ul>
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Assigned staff</dt>
+                <dd class="text-slate-400 mt-0.5">{{ assignedStaffSummary(vd) }}</dd>
+              </div>
+              <div>
+                <dt class="text-xs uppercase text-slate-500 font-medium">Assigned students</dt>
+                <dd class="text-slate-400 mt-0.5">{{ assignedStudentsSummary(vd) }}</dd>
+              </div>
+            </dl>
+            <div class="flex flex-wrap gap-2 pt-4 border-t border-slate-600/60">
+              <button
+                type="button"
+                (click)="openUpdateFromView()"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+                Update department
+              </button>
+              <button
+                type="button"
+                (click)="closeViewModal()"
+                class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+                Close
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+            <h2 id="dept-view-modal-title" class="text-lg font-semibold text-slate-400">Department</h2>
+            <button
+              type="button"
+              (click)="closeViewModal()"
+              class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+              aria-label="Close">
+              <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div class="p-5 text-sm text-slate-400">
+            <p>This department is no longer in the list.</p>
+            <button
+              type="button"
+              (click)="closeViewModal()"
+              class="mt-4 px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+              Close
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (showDepartmentModal) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dept-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeEditModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="dept-modal-title" class="text-lg font-semibold text-emerald-400">Update department</h2>
+          <button
+            type="button"
+            (click)="closeEditModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <p class="text-slate-500 text-xs mb-4">
+            ID <span class="font-mono text-emerald-400/90">{{ editId }}</span> (cannot be changed)
+          </p>
+          @if (editFormError) {
+            <div
+              class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+              role="alert">
+              {{ editFormError }}
+            </div>
+          }
+          <form (ngSubmit)="saveDepartmentEdit()" class="space-y-3">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Name <span class="text-red-400">*</span></label>
+              <input
+                type="text"
+                name="editName"
+                [(ngModel)]="editDraft.name"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Department head <span class="text-red-400">*</span></label>
+              <select
+                name="editHeadStaffId"
+                [(ngModel)]="editDraft.headStaffId"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="">— Choose a staff user —</option>
+                @for (u of appUsers(); track u.id) {
+                  <option [value]="u.id">{{ u.displayName }} ({{ u.email }})</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Description <span class="text-red-400">*</span></label>
+              <textarea
+                name="editDescription"
+                rows="3"
+                [(ngModel)]="editDraft.description"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50 resize-y min-h-[4.5rem]"></textarea>
+            </div>
+            <p class="text-slate-500 text-[10px]">
+              Classes are managed in <strong class="text-slate-400">Classes</strong> and the list in
+              <strong class="text-slate-400">Lists of departments</strong> (remove with ×).
+            </p>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Status</label>
+              <select
+                name="editStatus"
+                [(ngModel)]="editDraft.status"
+                class="input-field w-full max-w-xs bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Archived">Archived</option>
+              </select>
+            </div>
+            <div class="flex flex-wrap gap-2 pt-4 border-t border-slate-600/60">
+              <button
+                type="submit"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+                Save changes
+              </button>
+              <button
+                type="button"
+                (click)="closeEditModal()"
+                class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showAssignStaffModal) {
+    <div
+      class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="assign-staff-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeAssignStaffModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="assign-staff-modal-title" class="text-lg font-semibold text-emerald-400">Assign</h2>
+          <button
+            type="button"
+            (click)="closeAssignStaffModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5 overflow-y-auto flex-1 min-h-0">
+          <p class="text-slate-500 text-xs mb-1">
+            Department <span class="font-mono text-emerald-400/90">{{ assignDeptId }}</span>
+          </p>
+          <p class="text-slate-500 text-xs mb-4">
+            Select people from <code class="text-slate-400">public/data/staff.json</code>. IDs are stored on the
+            department record.
+          </p>
+          @if (assignFormError) {
+            <div
+              class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+              role="alert">
+              {{ assignFormError }}
+            </div>
+          }
+          @if (appUsers().length === 0) {
+            <p class="text-slate-500 text-sm">No staff loaded. Open the Staff page or ensure staff.json is available.</p>
+          } @else {
+            <ul class="space-y-2 border border-slate-600/60 rounded-lg p-3 bg-slate-900/40 max-h-[45vh] overflow-y-auto">
+              @for (u of appUsers(); track u.id) {
+                <li>
+                  <label
+                    class="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-slate-700/40 transition">
+                    <input
+                      type="checkbox"
+                      class="mt-1 rounded border-slate-500 text-emerald-600 focus:ring-emerald-500/50"
+                      [checked]="isStaffIdSelected(u.id)"
+                      (change)="toggleAssignStaffId(u.id)" />
+                    <span class="min-w-0 flex-1 text-sm">
+                      <span class="text-slate-200 font-medium">{{ u.displayName }}</span>
+                      <span class="block text-xs text-slate-500 font-mono">{{ u.id }} · {{ u.email }}</span>
+                    </span>
+                  </label>
+                </li>
+              }
+            </ul>
+          }
+          <div class="flex flex-wrap gap-2 pt-5 mt-2 border-t border-slate-600/60">
+            <button
+              type="button"
+              (click)="saveAssignStaff()"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+              Save assignments
+            </button>
+            <button
+              type="button"
+              (click)="closeAssignStaffModal()"
+              class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (showAssignStudentsModal) {
+    <div
+      class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="assign-students-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeAssignStudentsModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-md max-h-[85vh] overflow-hidden flex flex-col rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="assign-students-modal-title" class="text-lg font-semibold text-emerald-400">Assign students</h2>
+          <button
+            type="button"
+            (click)="closeAssignStudentsModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5 overflow-y-auto flex-1 min-h-0">
+          <p class="text-slate-500 text-xs mb-1">
+            Department <span class="font-mono text-emerald-400/90">{{ assignStudentsDeptId }}</span>
+          </p>
+          <p class="text-slate-500 text-xs mb-4">
+            Select learners from <code class="text-slate-400">public/data/students.json</code>. IDs are stored on the
+            department record.
+          </p>
+          @if (assignStudentsFormError) {
+            <div
+              class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+              role="alert">
+              {{ assignStudentsFormError }}
+            </div>
+          }
+          @if (students().length === 0) {
+            <p class="text-slate-500 text-sm">No students loaded. Open the Students page or ensure students.json is available.</p>
+          } @else {
+            <ul class="space-y-2 border border-slate-600/60 rounded-lg p-3 bg-slate-900/40 max-h-[45vh] overflow-y-auto">
+              @for (stu of students(); track stu.id) {
+                <li>
+                  <label
+                    class="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-slate-700/40 transition">
+                    <input
+                      type="checkbox"
+                      class="mt-1 rounded border-slate-500 text-emerald-600 focus:ring-emerald-500/50"
+                      [checked]="isStudentIdSelected(stu.id)"
+                      (change)="toggleAssignStudentId(stu.id)" />
+                    <span class="min-w-0 flex-1 text-sm">
+                      <span class="text-slate-200 font-medium">{{ stu.displayName }}</span>
+                      <span class="block text-xs text-slate-500 font-mono">{{ stu.id }} · {{ stu.gender }}</span>
+                    </span>
+                  </label>
+                </li>
+              }
+            </ul>
+          }
+          <div class="flex flex-wrap gap-2 pt-5 mt-2 border-t border-slate-600/60">
+            <button
+              type="button"
+              (click)="saveAssignStudents()"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+              Save assignments
+            </button>
+            <button
+              type="button"
+              (click)="closeAssignStudentsModal()"
+              class="px-4 py-2 border border-slate-600 text-slate-300 rounded-lg text-sm hover:bg-slate-700/50 transition">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

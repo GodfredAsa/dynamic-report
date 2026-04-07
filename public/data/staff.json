@@ -1,0 +1,72 @@
+[
+  {
+    "id": "usr-1",
+    "displayName": "Abi Administrator",
+    "email": "abi@dynamic.com",
+    "password": "1234",
+    "cardNumber": "7876567890",
+    "cardType": "VOTERS CARD",
+    "staffCategory": "teaching",
+    "roles": [
+      "ADMIN",
+      "REPORTS",
+      "STUDENTS",
+      "STAFF",
+      "CLASSES",
+      "TERM",
+      "FEES",
+      "STATISTICS"
+    ]
+  },
+  {
+    "id": "usr-2",
+    "displayName": "Dr. Sarah Jenkins",
+    "email": "sarah.jenkins@dynamic.com",
+    "password": "1234",
+    "cardNumber": "",
+    "cardType": "GHANA-CARD",
+    "staffCategory": "teaching",
+    "roles": [
+      "STAFF"
+    ]
+  },
+  {
+    "id": "usr-5",
+    "displayName": "ISAAC ABBEY",
+    "email": "i.abbey@dynamic.com",
+    "password": "1234",
+    "cardNumber": "GHA-1325678-8",
+    "cardType": "GHANA-CARD",
+    "staffCategory": "non-teaching",
+    "roles": [
+      "TERM",
+      "REPORTS",
+      "CLASSES",
+      "STUDENTS"
+    ]
+  },
+  {
+    "id": "usr-3",
+    "displayName": "Mr. James Owusu",
+    "email": "j.owusu@dynamic.com",
+    "password": "1234",
+    "cardNumber": "",
+    "cardType": "GHANA-CARD",
+    "staffCategory": "teaching",
+    "roles": [
+      "STAFF"
+    ]
+  },
+  {
+    "id": "usr-4",
+    "displayName": "Ms. Ama Boateng",
+    "email": "a.boateng@dynamic.com",
+    "password": "1234",
+    "cardNumber": "",
+    "cardType": "GHANA-CARD",
+    "staffCategory": "teaching",
+    "roles": [
+      "STAFF"
+    ]
+  }
+]

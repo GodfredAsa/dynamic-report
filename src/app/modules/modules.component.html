@@ -1,0 +1,44 @@
+<div class="w-full max-w-[1400px] mx-auto px-1">
+  <header class="mb-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-semibold text-emerald-400">MODULES</h1>
+      <p class="text-slate-400 text-sm mt-1">Choose a workspace. More modules will appear here as the app grows.</p>
+      @if (user(); as name) {
+        <p class="text-slate-500 text-xs mt-2">Signed in as {{ name }}</p>
+      }
+    </div>
+    <button
+      type="button"
+      (click)="logout()"
+      class="shrink-0 px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+      Log out
+    </button>
+  </header>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 md:gap-6">
+    @for (m of visibleModuleCards(); track m.route) {
+      <a
+        [routerLink]="m.route"
+        class="group flex h-full min-h-[11rem] flex-col rounded-xl border border-slate-600/80 bg-slate-800/60 p-6 shadow-sm transition hover:border-emerald-500/50 hover:bg-slate-800/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60">
+        <div class="flex flex-1 flex-col gap-4 sm:flex-row sm:items-start">
+          <span
+            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-emerald-600/20 text-emerald-400 text-xl group-hover:bg-emerald-600/30 transition"
+            aria-hidden="true">
+            <i [class]="m.iconClass"></i>
+          </span>
+          <div class="flex min-w-0 flex-1 flex-col">
+            <h2 class="text-lg font-semibold text-slate-100 group-hover:text-emerald-300 transition">
+              {{ m.title }}
+            </h2>
+            <p class="text-slate-400 text-sm mt-2 leading-relaxed">
+              {{ m.description }}
+            </p>
+            <p class="text-emerald-500/90 mt-auto pt-3 text-xs font-medium group-hover:text-emerald-400">
+              Open module <span aria-hidden="true">→</span>
+            </p>
+          </div>
+        </div>
+      </a>
+    }
+  </div>
+</div>

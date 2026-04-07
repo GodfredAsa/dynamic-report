@@ -10,6 +10,9 @@ import { CsvReportGroup, ReportService } from '../report.service';
 export class MultiReportComponent {
   private report = inject(ReportService);
 
+  /** Collapsible section (header always visible). */
+  multiSectionOpen = false;
+
   csvStatus = '';
   csvGroups: CsvReportGroup[] = [];
   private csvFile: File | null = null;

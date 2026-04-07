@@ -1,0 +1,481 @@
+<div class="w-full max-w-5xl mx-auto">
+  <header class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-start gap-4">
+      <a
+        routerLink="/modules"
+        class="mt-1 text-slate-400 hover:text-emerald-400 transition text-sm shrink-0"
+        title="Back to modules">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+        <span class="sr-only">Back to modules</span>
+      </a>
+      <div>
+        <h1 class="text-2xl font-semibold text-emerald-400 flex items-center gap-3">
+          <i class="fa-solid fa-user-graduate text-emerald-500" aria-hidden="true"></i>
+          Students
+        </h1>
+        <p class="text-slate-400 text-sm mt-1">
+          Records live in <code class="text-slate-500">{{ dataDirHint }}</code> (<code class="text-slate-500">{{ studentsJsonPath }}</code>). Saving
+          uses the data API (<code class="text-slate-500">npm run data-api</code>).
+        </p>
+        @if (user(); as name) {
+          <p class="text-slate-500 text-xs mt-2">Signed in as {{ name }}</p>
+        }
+      </div>
+    </div>
+    @if (!adminCtx.inSetup()) {
+      <button
+        type="button"
+        (click)="logout()"
+        class="shrink-0 px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+        Log out
+      </button>
+    }
+  </header>
+
+  @if (studentsLoadError()) {
+    <div class="mb-4 px-3 py-2 rounded-lg bg-amber-950/40 border border-amber-600/40 text-amber-200 text-sm" role="status">
+      {{ studentsLoadError() }} — showing built-in fallback list until the file is available.
+    </div>
+  }
+
+  @if (adminCtx.inSetup()) {
+    <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+      <button
+        type="button"
+        id="add-student-heading"
+        (click)="addSectionOpen = !addSectionOpen"
+        [attr.aria-expanded]="addSectionOpen"
+        aria-controls="add-student-panel"
+        class="w-full flex items-center justify-between gap-3 px-6 py-4 text-left hover:bg-slate-800/40 transition">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Add student</h2>
+        <i
+          class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0 transition-transform duration-200"
+          [class.rotate-180]="addSectionOpen"
+          aria-hidden="true"></i>
+      </button>
+      @if (addSectionOpen) {
+        <div id="add-student-panel" role="region" aria-labelledby="add-student-heading" class="px-6 pb-6 pt-0 border-t border-slate-600/60">
+          @if (!perms.canWrite()) {
+            <div class="mb-4 pt-4 px-3 py-2 rounded-lg bg-slate-900/40 border border-slate-600/60 text-slate-300 text-sm">
+              View-only access: adding students is disabled for your account.
+            </div>
+          }
+          <p class="text-slate-500 text-xs mb-4 pt-4">
+            Each learner needs a <strong class="text-slate-400">name</strong> and <strong class="text-slate-400">gender</strong> (male or female), plus a
+            <strong class="text-slate-400">parent or guardian</strong> with <strong class="text-slate-400">name</strong> and
+            <strong class="text-slate-400">phone / mobile</strong>. ID is assigned automatically (<code class="text-slate-400">stu-3</code>, …).
+          </p>
+          @if (addFormError) {
+            <div class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm" role="alert">
+              {{ addFormError }}
+            </div>
+          }
+          <form (ngSubmit)="addStudentRow()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Student full name <span class="text-red-400">*</span></label>
+              <input
+                type="text"
+                name="newStudentName"
+                [(ngModel)]="newStudent.displayName"
+                required
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+                placeholder="e.g. Yaw Boateng" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Gender <span class="text-red-400">*</span></label>
+              <select
+                name="newStudentGender"
+                [(ngModel)]="newStudent.gender"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                @for (g of genders; track g) {
+                  <option [value]="g">{{ genderLabel(g) }}</option>
+                }
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Guardian / parent name <span class="text-red-400">*</span></label>
+              <input
+                type="text"
+                name="newGuardianName"
+                [(ngModel)]="newStudent.guardianName"
+                required
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+                placeholder="e.g. Efua Boateng" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Guardian phone / mobile <span class="text-red-400">*</span></label>
+              <input
+                type="tel"
+                name="newGuardianPhone"
+                [(ngModel)]="newStudent.guardianPhone"
+                required
+                autocomplete="tel"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+                placeholder="e.g. +233 24 123 4567" />
+            </div>
+            <div class="sm:col-span-2">
+              <button
+                type="submit"
+                [disabled]="!perms.canWrite()"
+                [class.opacity-50]="!perms.canWrite()"
+                [class.cursor-not-allowed]="!perms.canWrite()"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+                <i class="fa-solid fa-user-plus mr-2" aria-hidden="true"></i>Add student
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+    </div>
+  }
+
+  @if (adminCtx.inSetup()) {
+    <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+      <button
+        type="button"
+        id="assign-student-class-heading"
+        (click)="assignSectionOpen = !assignSectionOpen"
+        [attr.aria-expanded]="assignSectionOpen"
+        aria-controls="assign-student-class-panel"
+        class="w-full flex items-center justify-between gap-3 px-6 py-4 text-left hover:bg-slate-800/40 transition">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Assign student to class</h2>
+        <i
+          class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0 transition-transform duration-200"
+          [class.rotate-180]="assignSectionOpen"
+          aria-hidden="true"></i>
+      </button>
+      @if (assignSectionOpen) {
+        <div
+          id="assign-student-class-panel"
+          role="region"
+          aria-labelledby="assign-student-class-heading"
+          class="px-6 pb-6 pt-0 border-t border-slate-600/60">
+          @if (!perms.canWrite()) {
+            <div class="mb-4 pt-4 px-3 py-2 rounded-lg bg-slate-900/40 border border-slate-600/60 text-slate-300 text-sm">
+              View-only access: assigning students is disabled for your account.
+            </div>
+          }
+          <p class="text-slate-500 text-xs mb-4 pt-4">
+            Pick the <strong class="text-slate-400">department</strong>, then the <strong class="text-slate-400">class group</strong>
+            (e.g. Form 1 A). Rosters are stored on each class in
+            <code class="text-slate-400">public/data/departments.json</code>. Add class groups under
+            <span class="text-slate-400">Classes &amp; departments</span> → <strong class="text-slate-400">Classes</strong> if you do not see one here.
+            Department-level rosters (from the Students button on the departments table) still appear as “department roster” in the list below.
+          </p>
+          @if (assignToClassError) {
+            <div class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm" role="alert">
+              {{ assignToClassError }}
+            </div>
+          }
+          <form (ngSubmit)="assignStudentToClass()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Student <span class="text-red-400">*</span></label>
+              <select
+                name="assignStudent"
+                [(ngModel)]="assignPickStudentId"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="">— Select student —</option>
+                @for (s of students(); track s.id) {
+                  <option [value]="s.id">{{ s.displayName }} ({{ s.id }})</option>
+                }
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Department <span class="text-red-400">*</span></label>
+              <select
+                name="assignDept"
+                [(ngModel)]="assignPickDeptId"
+                (ngModelChange)="onAssignDepartmentChange()"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="">— Select department —</option>
+                @for (d of sortedDepartments(); track d.id) {
+                  <option [value]="d.id">{{ d.name }} ({{ d.id }})</option>
+                }
+              </select>
+              @if (departments().length === 0) {
+                <p class="text-slate-500 text-xs mt-2">No departments yet. Add one under Classes &amp; departments first.</p>
+              }
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Class <span class="text-red-400">*</span></label>
+              <select
+                name="assignClass"
+                [(ngModel)]="assignPickClassId"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+                [disabled]="!assignPickDeptId">
+                <option value="">— Select class —</option>
+                @for (c of classesForAssignDepartment(); track c.id) {
+                  <option [value]="c.id">{{ c.name }} ({{ c.id }})</option>
+                }
+              </select>
+              @if (assignPickDeptId && classesForAssignDepartment().length === 0) {
+                <p class="text-slate-500 text-xs mt-2">This department has no class groups yet. Use Classes &amp; departments → Classes → Assign class.</p>
+              }
+            </div>
+            <div class="sm:col-span-2">
+              <button
+                type="submit"
+                [disabled]="!perms.canWrite()"
+                [class.opacity-50]="!perms.canWrite()"
+                [class.cursor-not-allowed]="!perms.canWrite()"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+                <i class="fa-solid fa-link mr-2" aria-hidden="true"></i>Assign to class
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+    </div>
+  }
+
+  <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+    <button
+      type="button"
+      id="students-data-tools-heading"
+      (click)="dataToolsSectionOpen = !dataToolsSectionOpen"
+      [attr.aria-expanded]="dataToolsSectionOpen"
+      aria-controls="students-data-tools-panel"
+      class="w-full flex items-center justify-between gap-3 px-6 py-4 text-left hover:bg-slate-800/40 transition">
+      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">
+        Download <code class="text-slate-400 font-mono text-xs font-normal">{{ dataDirHint }}</code>
+      </h2>
+      <i
+        class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0 transition-transform duration-200"
+        [class.rotate-180]="dataToolsSectionOpen"
+        aria-hidden="true"></i>
+    </button>
+    @if (actionMessage) {
+      <div class="px-6 py-3 border-t border-slate-600/60 bg-slate-900/25">
+        <p class="text-slate-400 text-xs">{{ actionMessage }}</p>
+      </div>
+    }
+    @if (dataToolsSectionOpen) {
+      <div
+        id="students-data-tools-panel"
+        role="region"
+        aria-labelledby="students-data-tools-heading"
+        class="px-6 pb-6 pt-4 border-t border-slate-600/60">
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button
+            type="button"
+            (click)="exportStudents()"
+            class="px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+            <i class="fa-solid fa-download mr-2" aria-hidden="true"></i>Download students.json
+          </button>
+          <button
+            type="button"
+            (click)="reloadFromBundledFile()"
+            class="px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+            <i class="fa-solid fa-rotate mr-2" aria-hidden="true"></i>Reload from app data file
+          </button>
+        </div>
+        @if (adminCtx.inSetup()) {
+          <div class="border-t border-slate-600/60 pt-4">
+            <p class="text-slate-400 text-xs mb-2">
+              Import JSON to preview in memory, then download or use Add + save with data-api to persist.
+            </p>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+              <input
+                type="file"
+                accept=".json,application/json"
+                (change)="onImportSelected($event)"
+                class="block w-full sm:flex-1 text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-600 file:text-white hover:file:bg-slate-500" />
+              <button
+                type="button"
+                (click)="applyImport()"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium shrink-0">
+                Import (memory only)
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="rounded-xl border border-slate-600/80 bg-slate-800/40 mb-6 overflow-hidden">
+    <button
+      type="button"
+      id="students-list-heading"
+      (click)="studentsListSectionOpen = !studentsListSectionOpen"
+      [attr.aria-expanded]="studentsListSectionOpen"
+      aria-controls="students-list-panel"
+      class="w-full flex items-center justify-between gap-3 px-6 py-4 text-left hover:bg-slate-800/40 transition">
+      <div class="flex flex-wrap items-baseline gap-2 min-w-0">
+        <span class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Students</span>
+        <span class="text-slate-400 text-sm font-normal">({{ students().length }})</span>
+        @if (!loaded()) {
+          <span class="text-slate-500 font-normal text-xs">Loading…</span>
+        }
+      </div>
+      <i
+        class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0 transition-transform duration-200"
+        [class.rotate-180]="studentsListSectionOpen"
+        aria-hidden="true"></i>
+    </button>
+    @if (studentsListSectionOpen) {
+      <div
+        id="students-list-panel"
+        role="region"
+        aria-labelledby="students-list-heading"
+        class="border-t border-slate-600/60">
+        @if (!loaded()) {
+          <p class="p-8 text-center text-slate-500 text-sm">Loading…</p>
+        } @else if (students().length === 0) {
+          <p class="p-8 text-center text-slate-500 text-sm">No students loaded. Check public/data/students.json</p>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-300">
+              <thead class="bg-slate-800/80 text-xs uppercase text-slate-400">
+                <tr>
+                  <th class="px-4 py-3 font-medium">ID</th>
+                  <th class="px-4 py-3 font-medium">Student</th>
+                  <th class="px-4 py-3 font-medium">Gender</th>
+                  <th class="px-4 py-3 font-medium">Guardian</th>
+                  <th class="px-4 py-3 font-medium">Phone</th>
+                  <th class="px-4 py-3 font-medium min-w-[10rem]">Class / department</th>
+                  <th class="px-4 py-3 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-700/60">
+                @for (s of students(); track s.id) {
+                  <tr class="hover:bg-slate-800/40">
+                    <td class="px-4 py-3 font-mono text-emerald-400/90">{{ s.id }}</td>
+                    <td class="px-4 py-3">{{ s.displayName }}</td>
+                    <td class="px-4 py-3 text-slate-400">{{ genderLabel(s.gender) }}</td>
+                    <td class="px-4 py-3 text-slate-400">{{ s.guardianName }}</td>
+                    <td class="px-4 py-3 text-slate-400 font-mono text-xs">{{ s.guardianPhone }}</td>
+                    <td
+                      class="px-4 py-3 text-slate-400 text-xs max-w-[16rem] align-top"
+                      [attr.title]="classesSummaryForStudent(s.id)">
+                      {{ classesSummaryForStudent(s.id) }}
+                    </td>
+                    <td class="px-4 py-3 text-right whitespace-nowrap">
+                      <div class="inline-flex items-center justify-end gap-3">
+                        <button
+                          type="button"
+                          (click)="openStudentModal(s)"
+                          class="text-slate-400 hover:text-slate-200 transition"
+                          [attr.aria-label]="'View ' + s.id"
+                          [attr.title]="'View ' + s.id">
+                          <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="openStudentModal(s)"
+                          class="text-slate-400 hover:text-slate-200 transition"
+                          [attr.aria-label]="'Edit ' + s.id"
+                          [attr.title]="'Edit ' + s.id">
+                          <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <p class="text-center mt-8">
+    <a routerLink="/modules" class="text-emerald-400/90 text-sm font-medium hover:text-emerald-300 transition">
+      ← Back to modules
+    </a>
+  </p>
+
+  @if (showStudentModal) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="student-modal-title">
+      <button
+        type="button"
+        class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        (click)="closeStudentModal()"
+        aria-label="Close dialog"></button>
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-xl border border-slate-600 bg-slate-800 shadow-2xl shadow-black/40">
+        <div class="sticky top-0 flex items-center justify-between gap-3 border-b border-slate-600/80 bg-slate-800/95 px-5 py-4">
+          <h2 id="student-modal-title" class="text-lg font-semibold text-emerald-400">Student</h2>
+          <button
+            type="button"
+            (click)="closeStudentModal()"
+            class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-slate-200 transition"
+            aria-label="Close">
+            <i class="fa-solid fa-xmark text-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="p-5">
+          <p class="text-slate-500 text-xs mb-4">
+            ID <span class="font-mono text-emerald-400/90">{{ studentEditId }}</span> (cannot be changed)
+          </p>
+          @if (editStudentError) {
+            <div
+              class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm"
+              role="alert">
+              {{ editStudentError }}
+            </div>
+          }
+          <form (ngSubmit)="saveStudentEdit()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Student full name <span class="text-red-400">*</span></label>
+              <input
+                type="text"
+                name="editStudentName"
+                [(ngModel)]="editStudent.displayName"
+                required
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Gender <span class="text-red-400">*</span></label>
+              <select
+                name="editStudentGender"
+                [(ngModel)]="editStudent.gender"
+                class="input-field w-full max-w-xs bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                @for (g of genders; track g) {
+                  <option [value]="g">{{ genderLabel(g) }}</option>
+                }
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Guardian / parent name <span class="text-red-400">*</span></label>
+              <input
+                type="text"
+                name="editGuardianName"
+                [(ngModel)]="editStudent.guardianName"
+                required
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Guardian phone / mobile <span class="text-red-400">*</span></label>
+              <input
+                type="tel"
+                name="editGuardianPhone"
+                [(ngModel)]="editStudent.guardianPhone"
+                required
+                autocomplete="tel"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div class="sm:col-span-2 flex flex-wrap gap-2 pt-2">
+              <button
+                type="submit"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+                Save changes
+              </button>
+              <button
+                type="button"
+                (click)="closeStudentModal()"
+                class="px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  }
+</div>

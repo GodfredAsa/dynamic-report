@@ -1,0 +1,37 @@
+[
+  {
+    "id": "stu-2",
+    "displayName": "Abena Owusu",
+    "gender": "female",
+    "guardianName": "Kwame Owusu",
+    "guardianPhone": "+233 20 000 0002"
+  },
+  {
+    "id": "stu-3",
+    "displayName": "Ama Boahemaa",
+    "gender": "female",
+    "guardianName": "Angelina Cheah",
+    "guardianPhone": "0544704424"
+  },
+  {
+    "id": "stu-4",
+    "displayName": "Kingsford Dadzie Quasah",
+    "gender": "male",
+    "guardianName": "Godfred A. Asamoah",
+    "guardianPhone": "0548670632"
+  },
+  {
+    "id": "stu-1",
+    "displayName": "Kofi Mensah",
+    "gender": "male",
+    "guardianName": "Ama Mensah",
+    "guardianPhone": "+233 24 000 0001"
+  },
+  {
+    "id": "stu-5",
+    "displayName": "James K. Brown",
+    "gender": "male",
+    "guardianName": "Angelina Cheah",
+    "guardianPhone": "0544704424"
+  }
+]

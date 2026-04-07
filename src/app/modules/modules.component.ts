@@ -1,0 +1,136 @@
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
+import { AppUserStoreService } from '../data/app-user-store.service';
+import { AppRole } from '../data/app-user.model';
+
+export interface ModuleCard {
+  title: string;
+  description: string;
+  iconClass: string;
+  route: string;
+}
+
+@Component({
+  selector: 'app-modules',
+  imports: [CommonModule, RouterLink],
+  templateUrl: './modules.component.html',
+})
+export class ModulesComponent {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  private staffStore = inject(AppUserStoreService);
+
+  user = this.auth.currentUser;
+
+  readonly moduleCards: ModuleCard[] = [
+    {
+      title: 'PROFILE',
+      description: 'View your login details and (if allowed) update your profile.',
+      iconClass: 'fa-solid fa-id-badge',
+      route: '/profile',
+    },
+    {
+      title: 'REPORTS',
+      description:
+        'Build print-ready terminal reports: single-student forms or bulk CSV with preview and PDF.',
+      iconClass: 'fa-solid fa-file-lines',
+      route: '/reports',
+    },
+    {
+      title: 'STUDENTS',
+      description:
+        'Add and edit learners with guardian contact; assign students to class groups; data in students.json and departments.json.',
+      iconClass: 'fa-solid fa-user-graduate',
+      route: '/students',
+    },
+    {
+      title: 'STAFF',
+      description:
+        'Manage teachers and school staff, roles, and how they connect to classes and logins.',
+      iconClass: 'fa-solid fa-chalkboard-user',
+      route: '/staff',
+    },
+    {
+      title: 'CLASSES & DEPARTMENTS',
+      description:
+        'Create departments and class groups (forms, sections) so teachers and reports stay organized.',
+      iconClass: 'fa-solid fa-school',
+      route: '/classes',
+    },
+    {
+      title: 'TERM',
+      description:
+        'Set the active term label and currency used across reports and fees.',
+      iconClass: 'fa-solid fa-calendar-days',
+      route: '/term',
+    },
+    {
+      title: 'FEES MANAGEMENT',
+      description:
+        'Track fee schedules, balances, and payments; connect amounts to students, classes, and reporting terms.',
+      iconClass: 'fa-solid fa-file-invoice-dollar',
+      route: '/fees',
+    },
+    {
+      title: 'METRICS & PERFORMANCE',
+      description:
+        'View school-wide and class-level analytics: grade averages, distributions, and progress over time.',
+      iconClass: 'fa-solid fa-chart-line',
+      route: '/statistics',
+    },
+    {
+      title: 'SETUP',
+      description: 'Configure the system and admin-only settings.',
+      iconClass: 'fa-solid fa-sliders',
+      route: '/setup',
+    },
+  ];
+
+  private routeRole(route: string): AppRole | null {
+    switch (route) {
+      case '/profile':
+        return null;
+      case '/reports':
+        return 'REPORTS';
+      case '/students':
+        return 'STUDENTS';
+      case '/staff':
+        return 'ADMIN';
+      case '/classes':
+        return 'CLASSES';
+      case '/term':
+        return 'TERM';
+      case '/fees':
+        return 'FEES';
+      case '/statistics':
+        return 'STATISTICS';
+      case '/setup':
+        return 'ADMIN';
+      default:
+        return null;
+    }
+  }
+
+  private currentRoles(): AppRole[] {
+    const email = this.auth.getSessionEmail();
+    if (!email) return [];
+    const u = this.staffStore.users().find((x) => x.email === email);
+    return u?.roles ?? [];
+  }
+
+  visibleModuleCards(): ModuleCard[] {
+    const roles = new Set(this.currentRoles());
+    return this.moduleCards.filter((m) => {
+      const r = this.routeRole(m.route);
+      if (!r) return true;
+      return roles.has(r);
+    });
+  }
+
+  logout(): void {
+    this.auth.logout();
+    void this.router.navigateByUrl('/login');
+  }
+}

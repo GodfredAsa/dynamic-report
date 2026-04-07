@@ -1,0 +1,349 @@
+<section class="no-print mb-8">
+  <div class="rounded-xl border border-emerald-500/20 bg-slate-800/60 shadow-sm overflow-hidden">
+    <button
+      type="button"
+      id="batch-report-heading"
+      (click)="batchSectionOpen = !batchSectionOpen"
+      [attr.aria-expanded]="batchSectionOpen"
+      aria-controls="batch-report-panel"
+      class="w-full flex items-center justify-between gap-3 px-4 py-4 text-left hover:bg-slate-800/40 transition">
+      <div class="min-w-0">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Batch report → No. SUBJECTS & PUPILS </h2>
+        <p class="text-slate-400 text-xs mt-0.5">
+          Set pupil count &amp; subject rows → general fields once → fill each learner → preview or print all
+        </p>
+      </div>
+      <i
+        class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0 transition-transform duration-200"
+        [class.rotate-180]="batchSectionOpen"
+        aria-hidden="true"></i>
+    </button>
+    @if (batchSectionOpen) {
+      <div
+        id="batch-report-panel"
+        role="region"
+        aria-labelledby="batch-report-heading"
+        class="flex flex-col gap-6 px-4 pb-4 md:px-6 border-t border-slate-600/60 pt-4">
+        <div class="bg-slate-800/80 rounded-xl border border-slate-600/80 p-4 md:p-6 shadow-sm space-y-4">
+          <h3 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">1. Grid size</h3>
+          <p class="text-slate-500 text-xs">
+            Maximum {{ maxPupils }} pupils and {{ maxSubjects }} subject lines per pupil. Generating again replaces pupil
+            rows only; general information is kept.
+          </p>
+          <div class="flex flex-wrap items-end gap-4">
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Number of pupils</label>
+              <input
+                type="number"
+                min="1"
+                [max]="maxPupils"
+                [(ngModel)]="pupilCountInput"
+                [ngModelOptions]="{ standalone: true }"
+                class="input-field w-28 bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Number of subjects (per pupil)</label>
+              <input
+                type="number"
+                min="1"
+                [max]="maxSubjects"
+                [(ngModel)]="subjectCountInput"
+                [ngModelOptions]="{ standalone: true }"
+                class="input-field w-28 bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+            </div>
+            <button
+              type="button"
+              (click)="generateFormGrid()"
+              class="px-4 py-2 bg-[#069668] hover:bg-[#058559] text-white rounded-lg text-sm font-medium transition">
+              Generate forms
+            </button>
+          </div>
+          @if (batchMessage) {
+            <p class="text-slate-400 text-xs">{{ batchMessage }}</p>
+          }
+        </div>
+
+        @if (pupils.length > 0) {
+          <div class="bg-slate-800/80 rounded-xl border border-slate-600/80 p-4 md:p-6 shadow-sm space-y-4">
+            <h3 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">
+              2. General information <span class="text-slate-500 font-normal normal-case">(once for all)</span>
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Department <span class="text-red-400">*</span></label>
+                <select
+                  [(ngModel)]="general.department"
+                  [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="onGeneralDepartmentChange()"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                  <option value="">— Select department —</option>
+                  @for (d of sortedDepartments(); track d.id) {
+                    <option [value]="d.name">{{ d.name }} ({{ d.id }})</option>
+                  }
+                </select>
+                @if (departments().length === 0) {
+                  <p class="text-amber-200/90 text-xs mt-1.5">No departments loaded. Add departments under Classes &amp; departments or check <code class="text-slate-500">public/data/departments.json</code>.</p>
+                }
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Form / class <span class="text-red-400">*</span></label>
+                <select
+                  [(ngModel)]="general.reportClass"
+                  [ngModelOptions]="{ standalone: true }"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+                  [disabled]="!general.department || classesForSelectedDepartment().length === 0">
+                  <option value="">— Select class —</option>
+                  @for (c of classesForSelectedDepartment(); track c.id) {
+                    <option [value]="c.name">{{ c.name }} ({{ c.id }})</option>
+                  }
+                </select>
+                @if (!general.department) {
+                  <p class="text-slate-500 text-xs mt-1">Select a department first. Classes come from that department in <code class="text-slate-600">departments.json</code>.</p>
+                } @else if (classesForSelectedDepartment().length === 0) {
+                  <p class="text-amber-200/90 text-xs mt-1">
+                    No class groups on this department. Use <strong class="text-slate-300">Classes &amp; departments</strong> → Classes → Assign class.
+                  </p>
+                } @else {
+                  <p class="text-slate-500 text-xs mt-1">Same class for every pupil in this batch.</p>
+                }
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">School address <span class="text-slate-500">(optional)</span></label>
+                <input
+                  type="text"
+                  [(ngModel)]="general.schoolAddress"
+                  [ngModelOptions]="{ standalone: true }"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Year <span class="text-red-400">*</span></label>
+                <input
+                  type="text"
+                  [(ngModel)]="general.reportYear"
+                  [ngModelOptions]="{ standalone: true }"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Term / session <span class="text-red-400">*</span></label>
+                <input
+                  type="text"
+                  [(ngModel)]="general.termSession"
+                  [ngModelOptions]="{ standalone: true }"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Report date <span class="text-red-400">*</span></label>
+                <input
+                  type="date"
+                  [(ngModel)]="general.reportDate"
+                  [ngModelOptions]="{ standalone: true }"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Vacation date <span class="text-slate-500">(optional)</span></label>
+                <input
+                  type="date"
+                  [(ngModel)]="general.vacationDate"
+                  [ngModelOptions]="{ standalone: true }"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs text-slate-400 mb-1">Class teacher <span class="text-red-400">*</span></label>
+                <input
+                  type="text"
+                  [(ngModel)]="general.classTeacher"
+                  [ngModelOptions]="{ standalone: true }"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs text-slate-400 mb-1">Headteacher's comments <span class="text-slate-500">(optional)</span></label>
+                <textarea
+                  rows="2"
+                  [(ngModel)]="general.headteacherRemarks"
+                  [ngModelOptions]="{ standalone: true }"
+                  class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50 resize-y min-h-[4rem]"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <h3 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider px-1">
+              3. Pupils <span class="text-slate-400 font-normal">({{ pupils.length }})</span>
+            </h3>
+            @for (pupil of pupils; track $index; let pi = $index) {
+              <details class="rounded-xl border border-slate-600/80 bg-slate-800/80 overflow-hidden group">
+                <summary
+                  class="px-4 py-3 cursor-pointer list-none flex items-center justify-between gap-2 hover:bg-slate-800/50 transition">
+                  <span class="text-slate-200 text-sm font-medium">
+                    Pupil {{ pi + 1 }}
+                    @if (pupil.studentName.trim()) {
+                      <span class="text-slate-400 font-normal">— {{ pupil.studentName }}</span>
+                    }
+                  </span>
+                  <span class="flex items-center gap-3 shrink-0">
+                    <button
+                      type="button"
+                      (click)="$event.preventDefault(); $event.stopPropagation(); previewPupil(pi)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Preview
+                    </button>
+                    <button
+                      type="button"
+                      (click)="$event.preventDefault(); $event.stopPropagation(); printPupilInNewWindow(pi)"
+                      class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
+                      Print
+                    </button>
+                    <i class="fa-solid fa-chevron-down text-slate-500 text-xs group-open:rotate-180 transition-transform" aria-hidden="true"></i>
+                  </span>
+                </summary>
+                <div class="px-4 pb-4 pt-0 border-t border-slate-600/50 space-y-4">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4">
+                    <div class="sm:col-span-2 lg:col-span-1">
+                      <label class="block text-xs text-slate-400 mb-1">Student name <span class="text-red-400">*</span></label>
+                      <input
+                        type="text"
+                        [(ngModel)]="pupil.studentName"
+                        [ngModelOptions]="{ standalone: true }"
+                        class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-400 mb-1">Attendance <span class="text-slate-500">(optional)</span></label>
+                      <input
+                        type="number"
+                        min="0"
+                        [(ngModel)]="pupil.attendance"
+                        [ngModelOptions]="{ standalone: true }"
+                        class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-400 mb-1">Expected attendance <span class="text-slate-500">(optional)</span></label>
+                      <input
+                        type="number"
+                        min="0"
+                        [(ngModel)]="pupil.expectedAttendance"
+                        [ngModelOptions]="{ standalone: true }"
+                        class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                    </div>
+                    <div class="sm:col-span-2">
+                      <label class="block text-xs text-slate-400 mb-1">Class teacher's comments <span class="text-slate-500">(optional)</span></label>
+                      <textarea
+                        rows="2"
+                        [(ngModel)]="pupil.classTeacherRemarks"
+                        [ngModelOptions]="{ standalone: true }"
+                        class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50 resize-y min-h-[3.5rem]"></textarea>
+                    </div>
+                  </div>
+                  <div class="rounded-lg border border-slate-600/60 bg-slate-900/30 p-3">
+                    <p class="text-slate-500 text-xs mb-2">Fees <span class="text-red-400">*</span></p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Fees balance</label>
+                        <input
+                          type="text"
+                          [(ngModel)]="pupil.feesBalance"
+                          [ngModelOptions]="{ standalone: true }"
+                          class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                      </div>
+                      <div>
+                        <label class="block text-xs text-slate-400 mb-1">Fees next term</label>
+                        <input
+                          type="text"
+                          [(ngModel)]="pupil.feesNextTerm"
+                          [ngModelOptions]="{ standalone: true }"
+                          class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-slate-400 text-xs mb-2">Subjects — exam max 60, class max 40</p>
+                    <div class="space-y-2">
+                      @for (s of pupil.subjects; track $index; let si = $index) {
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-center">
+                          <input
+                            type="text"
+                            placeholder="Subject"
+                            [(ngModel)]="s.name"
+                            [ngModelOptions]="{ standalone: true }"
+                            class="md:col-span-2 bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                          <input
+                            type="number"
+                            placeholder="Exam"
+                            min="0"
+                            max="60"
+                            [(ngModel)]="s.exam"
+                            [ngModelOptions]="{ standalone: true }"
+                            (ngModelChange)="onScoreInput(pi, si, 'exam')"
+                            class="md:col-span-1 bg-slate-700/80 border border-slate-600 rounded-lg px-2 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                          <input
+                            type="number"
+                            placeholder="Class"
+                            min="0"
+                            max="40"
+                            [(ngModel)]="s.classwork"
+                            [ngModelOptions]="{ standalone: true }"
+                            (ngModelChange)="onScoreInput(pi, si, 'class')"
+                            class="md:col-span-1 bg-slate-700/80 border border-slate-600 rounded-lg px-2 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                          <span class="md:col-span-1 text-amber-400 text-sm font-medium">{{ sumLine(pi, si) }}</span>
+                          <input
+                            type="text"
+                            placeholder="Grade"
+                            [(ngModel)]="s.grade"
+                            [ngModelOptions]="{ standalone: true }"
+                            class="md:col-span-1 bg-slate-700/80 border border-slate-600 rounded-lg px-2 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                          <input
+                            type="text"
+                            placeholder="Remarks"
+                            [(ngModel)]="s.remarks"
+                            [ngModelOptions]="{ standalone: true }"
+                            class="md:col-span-2 bg-slate-700/80 border border-slate-600 rounded-lg px-2 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                        </div>
+                      }
+                    </div>
+                  </div>
+                  <div class="flex flex-wrap gap-2 pt-4 border-t border-slate-600/50 no-print">
+                    <button
+                      type="button"
+                      (click)="printPupilInNewWindow(pi)"
+                      class="px-4 py-2 bg-slate-700/80 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-200 text-sm font-medium transition">
+                      <i class="fa-solid fa-print mr-2" aria-hidden="true"></i>Print in new window
+                    </button>
+                  </div>
+                </div>
+              </details>
+            }
+          </div>
+
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button
+              type="button"
+              (click)="printAllReports()"
+              class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium text-sm shadow-sm transition">
+              Print all reports
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>
+
+<div
+  class="report-modal"
+  [class.hidden]="!showReportModal"
+  [attr.aria-hidden]="!showReportModal">
+  <div class="report-modal-backdrop no-print"></div>
+  <div class="report-modal-content">
+    <div class="report-modal-actions no-print">
+      @if (previewPupilLabel) {
+        <span class="text-slate-400 text-xs mr-auto truncate max-w-[12rem] sm:max-w-none">{{ previewPupilLabel }}</span>
+      }
+      <button type="button" (click)="printModalReport()" class="report-modal-btn report-modal-btn-print">Print report</button>
+      <button type="button" (click)="closeReportModal()" class="report-modal-btn report-modal-btn-close">Close</button>
+    </div>
+    <div class="report-border">
+      @if (reportHtml) {
+        <div #reportHost class="report-sheet" [innerHTML]="reportHtml"></div>
+      }
+    </div>
+  </div>
+</div>

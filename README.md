@@ -1,27 +1,155 @@
 # School Report
 
-Angular web app for building **terminal (end-of-term) school reports** from subject scores. Teachers or admins can fill in school and student details, enter exam and classwork marks per subject, and generate a **print-ready** report (browser print / save as PDF). The app also supports **bulk generation** from a CSV: long-format data grouped by `reportId`, with one row per subject per student, then preview and print each student’s report individually.
+Angular web app for **terminal (end-of-term) school reports** and lightweight **school data** management. Teachers and admins sign in, open modules from a hub, and work with JSON-backed records under `public/data/`. Reports can be built **one student at a time** or **in bulk from CSV**; other modules cover students, staff, departments/classes, a fee ledger, and headline statistics.
 
-**Highlights**
+**Single command to run the app (after dependencies are installed):** `npm run dev` — starts **`ng serve`** and **`npm run data-api`** together. Then open **http://localhost:4200/**.
 
-- **Single-report mode:** Form for department, student, term/class, dates, attendance, class teacher and headteacher comments, fees (balance + next term → total due), and a dynamic list of subjects.
-- **Scoring:** Exam (max 60) + classwork (max 40) = total out of 100; grades and remarks follow a fixed letter scale (A+ through E).
-- **Multi-report mode:** Upload CSV, load & preview groups, print or download PDF per student. Downloadable data template and link to a template guide from the UI.
-- **Stack:** [Angular](https://angular.dev) 19, standalone components, reactive templates.
+---
+
+## Quick start
+
+Install dependencies once, then start UI + data API with one command:
+
+```bash
+npm install
+npm run dev
+```
+
+Open **http://localhost:4200/**. The `dev` script uses [`concurrently`](https://www.npmjs.com/package/concurrently) to run **both** the Angular dev server and the local data API (defined in `package.json` as `"dev": "concurrently …"`). To run them in separate terminals instead: `npm run data-api` and `ng serve` (or `npm start`).
+
+---
+
+## Current application
+
+### Stack
+
+- **Angular** 19, standalone components, SCSS + Tailwind-style utility classes in `public/styles.css`
+- **Auth:** session guard on all routes except login; credentials validated against `public/data/staff.json` (demo-style client auth)
+
+### Modules (after login)
+
+| Module | Route | Purpose |
+|--------|--------|---------|
+| **Reports** | `/reports` | **Single report:** form for school/student/term, fees, subjects; exam (max 60) + classwork (max 40); generate print/PDF preview. **Multi report:** CSV upload (`reportId` groups, one row per subject), preview per student, print each. Both sections are **collapsible** (default collapsed). |
+| **Students** | `/students` | CRUD for learners; data in `students.json`. |
+| **Staff** | `/staff` | Staff users aligned with login records; `staff.json`. |
+| **Classes & departments** | `/classes` | Departments and class lists; `departments.json`. |
+| **Fees management** | `/fees` | Fee **ledger**: date, type (Utility, Feeding, Classes, Termly money), amount, who added (name/email); view/edit/delete; `fees.json`. |
+| **Statistics & performance** | `/statistics` | Cards: staff breakdown, student count, **people in system** (staff + students), **fee ledger summary** (totals by type). Charts: gender donut and per-department bars from department assignments. |
+
+### Data and persistence
+
+- Canonical files live in **`public/data/`**: e.g. `staff.json`, `students.json`, `departments.json`, `fees.json`, plus `term-fees.json` and `daily-feeding.json` where still referenced elsewhere.
+- The browser **cannot** write to disk by itself. A small **Node HTTP server** (`scripts/school-data-api.mjs`) accepts **POST** requests and updates those JSON files.
+- **`ng serve`** proxies **`/api/*`** to **http://localhost:4310** (`proxy.conf.json`). Run the data API alongside the app, or use **`npm run dev`** to start both.
+- Override the API port with **`SCHOOL_DATA_API_PORT`** if needed (keep proxy target in sync).
+
+### Project layout (high level)
+
+- `src/app/` — feature modules, `data/*` store services, `auth/`, `report.service.ts`
+- `public/data/*.json` — editable data files
+- `scripts/school-data-api.mjs` — dev file writer for `/api/...` routes
+
+---
+
+## Development server
+
+**Recommended (one command):**
+
+```bash
+npm run dev
+```
+
+Runs **`npm run data-api`** and **`ng serve`** together (via [`concurrently`](https://www.npmjs.com/package/concurrently)), with prefixed log lines.
+
+**Manual (two terminals):**
+
+```bash
+npm run data-api   # terminal 1 — must be running for save-to-disk from the UI
+ng serve           # terminal 2
+```
+
+The app reloads when you change source files. Saving entities that use the API (students, staff, departments, fees, etc.) requires the data API to be running.
+
+If you run `npm run build` (or `npm run watch`) while `ng serve` is already running, the app will also **start the data API automatically** (if it is not running yet) to keep save-to-JSON working.
+
+---
+
+## School manager plan
+
+The following section describes a **longer-term vision** for evolving the app into a fuller school management system. Several pieces (login, modules hub, students, staff, classes, fees ledger, statistics) are **already in place**; the bullets below remain useful for data-model hardening, roles, and import/export policy.
+
+This section describes a planned evolution of the app into a **small school management system**. All core data would live in **JSON files shipped with or generated by the app**, with **download (export)** available for backup and portability. **No database is required** for the first version; persistence can be **in-browser** (e.g. `localStorage` + import/export) while keeping the same JSON shapes as files in `public/` or `assets/` for defaults.
+
+### Goals
+
+- **Authentication:** Users sign in; **Admin** and **Teacher** (and optionally **Viewer**) roles.
+- **Admin:** Create and manage **users** (with roles), **teachers**, and **students**; assign teachers to classes/subjects where needed.
+- **Teacher:** Sign in and manage **their classes** (rosters, scores, and any class-scoped data the product defines).
+- **Post-login hub:** After login, users land on a **Modules** page; existing **terminal report** flows become **one module** among others (e.g. Students, Teachers).
+- **JSON-first:** Canonical records (users, students, teachers, classes, enrollments, etc.) are represented as **JSON**; the UI supports **download** (and **upload/import**) of those files so data can be backed up or moved between installs.
+
+### High-level architecture
+
+1. **JSON schemas (documented in repo):** Define stable shapes for e.g. `users.json`, `students.json`, `teachers.json`, `classes.json`, `enrollments.json` (exact split can be one file or a few; prefer small, clear files).
+2. **Data service layer:** Angular services load defaults from static assets, merge with **local persistence**, and expose CRUD-style APIs to components.
+3. **Export / import:** “Download JSON” per file or as a **single bundled archive** (optional); “Upload JSON” to restore or merge (with validation and conflict rules).
+4. **Security note:** Client-only auth is **not** safe for real secrets; **passwords must not** be stored in plain text. For a demo, use hashed tokens or a stated “demo only” mode; for production, move auth and storage to a backend.
+
+### Roles and responsibilities
+
+| Role | Capabilities |
+|------|----------------|
+| **Admin** | Full access: manage users and roles, teachers, students, school-wide settings; access all modules; export/import JSON. |
+| **Teacher** | Access **Modules**; manage **assigned classes** (rosters, marks, comments tied to those classes); use **Reports** module for their students where permitted. |
+| **Future: Student / Guardian** | Out of scope for v1; could be read-only reports later. |
+
+### User journey
+
+1. **Login** → validate against stored users (from JSON + local overrides).
+2. **Modules** (dashboard): tiles or links, e.g. **Reports** (current single/multi report), **Students**, **Teachers**, **Classes** (as schedules grow).
+3. Each module reads/writes through the **data layer**, which keeps JSON structures consistent and triggers **downloadable snapshots** when the user exports.
+
+### Modules (MVP vs later)
+
+**MVP**
+
+- **Reports:** Existing functionality (single student form + CSV multi-report), gated by role; optionally pre-fill student/class from managed data later.
+- **Students:** CRUD list; fields aligned with report cards (name, class, IDs, parent contacts optional).
+- **Teachers:** CRUD list; link to user accounts where a teacher is also a login user.
+- **Admin – Users:** Create login identifiers, assign roles, link to teacher profile if applicable.
+
+**Later**
+
+- **Classes / Sections:** Define class, assign teacher, attach students (enrollment).
+- **Attendance / Fees:** If still JSON-backed, extend schemas carefully.
+- **Audit / version history:** Optional export with timestamped filenames.
+
+### JSON storage and download behavior
+
+- **Bootstrap:** App loads `assets/data/*.json` (or `public/`) for seed data.
+- **Runtime:** Changes persist locally (e.g. `localStorage`) unless user clears data; **Export** writes the current state to downloaded `.json` files matching the documented schemas.
+- **Import:** User selects a file; app validates JSON, then replaces or merges per admin-chosen policy (replace-all vs merge-by-id).
+- **Naming:** Encourage dated exports, e.g. `students-2025-03-24.json`.
+
+### Implementation phases
+
+1. **Phase 1 – Structure:** Routes: `/login`, `/modules`, `/reports`, `/students`, `/teachers`, guards by role; placeholder modules wired to empty services.
+2. **Phase 2 – Data:** Define TypeScript interfaces + JSON samples; implement `DataStore` service (load/save/export/import); seed files in repo.
+3. **Phase 3 – Auth (demo):** Simple session (service + guard); admin user in seed JSON; no real password security until backend exists.
+4. **Phase 4 – CRUD UI:** Admin screens for users, teachers, students; teacher-scoped views filtered by assigned class IDs.
+5. **Phase 5 – Integration:** Reports module pulls student/class picks from managed data; CSV multi-report unchanged but can map to stored IDs.
+6. **Phase 6 – Hardening:** Validation, error messages, empty states, documentation for JSON formats, optional e2e tests.
+
+### Risks and constraints
+
+- **Browser-only JSON** limits multi-user concurrent editing; treat exports as the **source of truth** when moving between devices.
+- **Large schools** may need pagination or server storage; plan mentions JSON-first MVP only.
+- **Compliance:** Student data in local JSON still requires responsible handling; document that this is a **tooling / small-school** pattern, not a certified student information system.
 
 ---
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.22.
-
-## Development server
-
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
 ## Code scaffolding
 
@@ -65,6 +193,6 @@ ng e2e
 
 Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
 
-## Additional Resources
+## Additional resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

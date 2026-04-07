@@ -1,0 +1,82 @@
+[
+  {
+    "id": "DEPT-01",
+    "name": "KG",
+    "head": "Abi Administrator",
+    "headStaffId": "usr-1",
+    "description": "Kindergarten and early years.",
+    "classes": [
+      {
+        "id": "class-DEPT-01-01",
+        "name": "JHS ONE",
+        "assignedStudentIds": []
+      }
+    ],
+    "members": 3,
+    "students": 10,
+    "location": "Accra, Greater Accra, GHA",
+    "status": "Active",
+    "assignedStaffIds": [
+      "usr-4"
+    ],
+    "assignedStudentIds": [
+      "stu-2",
+      "stu-1"
+    ]
+  },
+  {
+    "id": "DEPT-02",
+    "name": "JHS",
+    "head": "ISAAC ABBEY",
+    "headStaffId": "usr-5",
+    "description": "Junior High School department.",
+    "classes": [
+      {
+        "id": "class-DEPT-02-01",
+        "name": "JHS-1",
+        "assignedStudentIds": [
+          "stu-5"
+        ]
+      }
+    ],
+    "members": 0,
+    "students": 0,
+    "location": "ACCRA",
+    "status": "Active",
+    "assignedStaffIds": [],
+    "assignedStudentIds": [
+      "stu-3",
+      "stu-4"
+    ]
+  },
+  {
+    "id": "DEPT-03",
+    "name": "LOWER PRIMARY",
+    "head": "Ms. Ama Boateng",
+    "headStaffId": "usr-4",
+    "description": "CLASS 1 - 3",
+    "classes": [
+      {
+        "id": "class-DEPT-03-01",
+        "name": "CLASS 1 (ONE)",
+        "assignedStudentIds": []
+      },
+      {
+        "id": "class-DEPT-03-02",
+        "name": "CLASS 2 (TWO)",
+        "assignedStudentIds": []
+      },
+      {
+        "id": "class-DEPT-03-03",
+        "name": "CLASS 3 (THREE)",
+        "assignedStudentIds": []
+      }
+    ],
+    "members": 0,
+    "students": 0,
+    "location": "",
+    "status": "Active",
+    "assignedStaffIds": [],
+    "assignedStudentIds": []
+  }
+]
