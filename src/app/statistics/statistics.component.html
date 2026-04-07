@@ -130,7 +130,7 @@
           </span>
           <div>
             <h2 id="card-ledger-fees-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">
-              FEE LEDGER SUMMARY
+              FEE SUMMARY BY TYPE
             </h2>
             <p class="text-slate-500 text-xs leading-snug">
               Totals from <code class="text-slate-600">fees.json</code> (Utility, Feeding, Classes, Termly money). Manage entries under
@@ -172,7 +172,7 @@
     <section
       class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8"
       aria-labelledby="fee-types-donut-heading">
-      <h2 id="fee-types-donut-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">FEE TYPES — DONUT</h2>
+      <h2 id="fee-types-donut-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">FEE CONTRIBUTION</h2>
       <p class="text-slate-500 text-xs mb-6">Percentage contribution of each fee type based on summed amounts in the ledger.</p>
 
       @if (!feeLedgerLoaded()) {
@@ -218,7 +218,7 @@
   <section
     class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8 mb-10"
     aria-labelledby="fees-line-heading">
-    <h2 id="fees-line-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">FEES OVER TIME — LINE CHART</h2>
+    <h2 id="fees-line-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">FEES TRENDS</h2>
     <p class="text-slate-500 text-xs mb-6">
       Uses <code class="text-slate-500">fees.json</code> dates and amounts (summed per day). Lines are grouped by currency.
     </p>
@@ -293,17 +293,15 @@
     <section
       class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8"
       aria-labelledby="donut-heading">
-      <h2 id="donut-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">ALL DEPARTMENTS — GENDER (DONUT)</h2>
+      <h2 id="donut-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">GENDER BREAKDOWN</h2>
       <p class="text-slate-500 text-xs mb-6">
-        Unique students who appear in at least one department’s class list. Each person is counted once for male / female
-        totals.
+        Gender totals across all people in the system (staff + students). Male + female equals total people.
       </p>
       @if (assignedGenderTotals().total === 0) {
         <div class="rounded-lg border border-slate-600/60 bg-slate-900/40 px-4 py-8 text-center">
-          <p class="text-slate-400 text-sm">No students assigned to departments yet.</p>
+          <p class="text-slate-400 text-sm">No people in the system yet.</p>
           <p class="text-slate-500 text-xs mt-2">
-            Use <span class="text-slate-400">Students → Assign to department</span> or
-            <span class="text-slate-400">Classes → Students</span>.
+            Add staff and students under <span class="text-slate-400">SETUP</span>.
           </p>
         </div>
       } @else {
@@ -322,7 +320,7 @@
             <div
               class="absolute inset-[24%] flex flex-col items-center justify-center rounded-full bg-slate-800 shadow-inner">
               <span class="text-3xl font-semibold tabular-nums text-slate-100">{{ assignedGenderTotals().total }}</span>
-              <span class="text-xs text-slate-500 uppercase tracking-wide">students</span>
+              <span class="text-xs text-slate-500 uppercase tracking-wide">people</span>
             </div>
           </div>
           <div class="flex-1 space-y-3 min-w-0">
@@ -354,7 +352,7 @@
     <section
       class="rounded-xl border border-slate-600/80 bg-slate-800/50 p-6 md:p-8 flex flex-col"
       aria-labelledby="bars-heading">
-      <h2 id="bars-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">BY DEPARTMENT — STACKED BARS</h2>
+      <h2 id="bars-heading" class="text-lg font-semibold text-emerald-400/95 mb-1">DEPARTMENT GENDER BREAKDOWN</h2>
       <p class="text-slate-500 text-xs mb-6">
         Each bar is one department. Blue = male, teal (<code class="text-slate-500">#34ca94</code>) = female among students
         on that department’s list (a student in two departments appears in both bars).

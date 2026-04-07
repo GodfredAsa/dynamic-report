@@ -72,6 +72,10 @@ export class ReportService {
     return new URL('dynamic-logo.jpeg', this.doc.baseURI).href;
   }
 
+  get beetleTechLogoUrl(): string {
+    return new URL('beetle-tech-logo.png', this.doc.baseURI).href;
+  }
+
   get watermarkAssetUrl(): string {
     return new URL('adinkra-bnw.webp', this.doc.baseURI).href;
   }
@@ -172,6 +176,8 @@ export class ReportService {
     const logoSrc = this.schoolLogoUrl;
     const logoFallbackSrc = logoSrc;
     const logoHtml = `<img src="${logoSrc.replace(/"/g, '&quot;')}" alt="School logo" onerror="this.onerror=null;this.src='${logoFallbackSrc.replace(/'/g, "\\'")}';" />`;
+    const beetleLogoSrc = this.beetleTechLogoUrl;
+    const beetleLogoHtml = `<img class="report-beetle-footer-logo" src="${beetleLogoSrc.replace(/"/g, '&quot;')}" alt="Beetle Tech" />`;
     const watermarkClass = 'report-watermark';
 
     const schoolName = this.escapeHtml('DYNAMIC DIVINE ACADEMY');
@@ -242,6 +248,14 @@ export class ReportService {
     <div>Fees for next term: ${this.escapeHtml(f.feesNextTerm || '')}</div>
     <div>Total due on opening day GHS: ${this.escapeHtml(f.totalDue || '')}</div>
   </div>
+  <footer class="report-beetle-footer">
+    ${beetleLogoHtml}
+    <div class="report-beetle-footer-text">
+      <div class="report-beetle-footer-name">Beetle Tech</div>
+      <div>WhatsApp: +233548670632</div>
+      <div>Call: +233548670632</div>
+    </div>
+  </footer>
 </div>
   `.trim();
   }

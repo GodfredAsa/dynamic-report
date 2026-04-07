@@ -39,107 +39,109 @@
     </div>
   }
 
-  <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
-    <button
-      type="button"
-      id="add-staff-heading"
-      (click)="addSectionOpen = !addSectionOpen"
-      [attr.aria-expanded]="addSectionOpen"
-      aria-controls="add-staff-panel"
-      class="w-full flex items-center justify-between gap-3 px-6 py-4 text-left hover:bg-slate-800/40 transition">
-      <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Add staff</h2>
-      <i
-        class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0 transition-transform duration-200"
-        [class.rotate-180]="addSectionOpen"
-        aria-hidden="true"></i>
-    </button>
-    @if (addSectionOpen) {
-      <div id="add-staff-panel" role="region" aria-labelledby="add-staff-heading" class="px-6 pb-6 pt-0 border-t border-slate-600/60">
-        <p class="text-slate-500 text-xs mb-4 pt-4">
-          Each person needs a <strong class="text-slate-400">login password</strong> (stored in staff.json for this demo — treat exports as sensitive),
-          plus <strong class="text-slate-400">card number</strong>, <strong class="text-slate-400">card type</strong>,
-          and <strong class="text-slate-400">teaching vs non-teaching</strong>. ID is assigned automatically (<code class="text-slate-400">usr-6</code>, …).
-        </p>
-        @if (addFormError) {
-          <div class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm" role="alert">
-            {{ addFormError }}
-          </div>
-        }
-        <form (ngSubmit)="addStaffMember()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="sm:col-span-2">
-            <label class="block text-xs text-slate-400 mb-1">Full name <span class="text-red-400">*</span></label>
-            <input
-              type="text"
-              name="newDisplayName"
-              [(ngModel)]="newStaff.displayName"
-              required
-              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
-              placeholder="e.g. Kwame Mensah" />
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs text-slate-400 mb-1">Email <span class="text-red-400">*</span></label>
-            <input
-              type="email"
-              name="newEmail"
-              [(ngModel)]="newStaff.email"
-              required
-              autocomplete="email"
-              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
-              placeholder="name@school.com" />
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs text-slate-400 mb-1">Sign-in password <span class="text-red-400">*</span></label>
-            <input
-              type="password"
-              name="newPassword"
-              [(ngModel)]="newStaff.password"
-              required
-              autocomplete="new-password"
-              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
-              placeholder="Used at login with this email" />
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Card number</label>
-            <input
-              type="text"
-              name="newCardNumber"
-              [(ngModel)]="newStaff.cardNumber"
-              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
-              placeholder="Document / card number" />
-          </div>
-          <div>
-            <label class="block text-xs text-slate-400 mb-1">Card type <span class="text-red-400">*</span></label>
-            <select
-              name="newCardType"
-              [(ngModel)]="newStaff.cardType"
-              class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
-              @for (ct of cardTypes; track ct) {
-                <option [value]="ct">{{ ct }}</option>
-              }
-            </select>
-          </div>
-          <div class="sm:col-span-2">
-            <label class="block text-xs text-slate-400 mb-1">Staff type <span class="text-red-400">*</span></label>
-            <select
-              name="newStaffCategory"
-              [(ngModel)]="newStaff.staffCategory"
-              class="input-field w-full max-w-md bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
-              @for (sc of staffCategories; track sc) {
-                <option [value]="sc">{{ staffCategoryLabel(sc) }}</option>
-              }
-            </select>
-          </div>
-          <div class="sm:col-span-2">
-            <button
-              type="submit"
-              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
-              <i class="fa-solid fa-user-plus mr-2" aria-hidden="true"></i>Add staff member
-            </button>
-          </div>
-        </form>
-      </div>
-    }
-  </div>
+  @if (adminCtx.inSetup()) {
+    <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
+      <button
+        type="button"
+        id="add-staff-heading"
+        (click)="addSectionOpen = !addSectionOpen"
+        [attr.aria-expanded]="addSectionOpen"
+        aria-controls="add-staff-panel"
+        class="w-full flex items-center justify-between gap-3 px-6 py-4 text-left hover:bg-slate-800/40 transition">
+        <h2 class="text-emerald-400/90 font-semibold text-sm uppercase tracking-wider">Add staff</h2>
+        <i
+          class="fa-solid fa-chevron-down text-slate-400 text-sm shrink-0 transition-transform duration-200"
+          [class.rotate-180]="addSectionOpen"
+          aria-hidden="true"></i>
+      </button>
+      @if (addSectionOpen) {
+        <div id="add-staff-panel" role="region" aria-labelledby="add-staff-heading" class="px-6 pb-6 pt-0 border-t border-slate-600/60">
+          <p class="text-slate-500 text-xs mb-4 pt-4">
+            Each person needs a <strong class="text-slate-400">login password</strong> (stored in staff.json for this demo — treat exports as sensitive),
+            plus <strong class="text-slate-400">card number</strong>, <strong class="text-slate-400">card type</strong>,
+            and <strong class="text-slate-400">teaching vs non-teaching</strong>. ID is assigned automatically (<code class="text-slate-400">usr-6</code>, …).
+          </p>
+          @if (addFormError) {
+            <div class="mb-4 px-3 py-2 rounded-lg bg-red-950/50 border border-red-500/40 text-red-300 text-sm" role="alert">
+              {{ addFormError }}
+            </div>
+          }
+          <form (ngSubmit)="addStaffMember()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Full name <span class="text-red-400">*</span></label>
+              <input
+                type="text"
+                name="newDisplayName"
+                [(ngModel)]="newStaff.displayName"
+                required
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+                placeholder="e.g. Kwame Mensah" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Email <span class="text-red-400">*</span></label>
+              <input
+                type="email"
+                name="newEmail"
+                [(ngModel)]="newStaff.email"
+                required
+                autocomplete="email"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+                placeholder="name@school.com" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Sign-in password <span class="text-red-400">*</span></label>
+              <input
+                type="password"
+                name="newPassword"
+                [(ngModel)]="newStaff.password"
+                required
+                autocomplete="new-password"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+                placeholder="Used at login with this email" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Card number</label>
+              <input
+                type="text"
+                name="newCardNumber"
+                [(ngModel)]="newStaff.cardNumber"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50"
+                placeholder="Document / card number" />
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Card type <span class="text-red-400">*</span></label>
+              <select
+                name="newCardType"
+                [(ngModel)]="newStaff.cardType"
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                @for (ct of cardTypes; track ct) {
+                  <option [value]="ct">{{ ct }}</option>
+                }
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs text-slate-400 mb-1">Staff type <span class="text-red-400">*</span></label>
+              <select
+                name="newStaffCategory"
+                [(ngModel)]="newStaff.staffCategory"
+                class="input-field w-full max-w-md bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                @for (sc of staffCategories; track sc) {
+                  <option [value]="sc">{{ staffCategoryLabel(sc) }}</option>
+                }
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <button
+                type="submit"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium transition">
+                <i class="fa-solid fa-user-plus mr-2" aria-hidden="true"></i>Add staff member
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+    </div>
+  }
 
   <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
     <button
@@ -182,24 +184,26 @@
             <i class="fa-solid fa-rotate mr-2" aria-hidden="true"></i>Reload from app data file
           </button>
         </div>
-        <div class="border-t border-slate-600/60 pt-4">
-          <p class="text-slate-400 text-xs mb-2">
-            Import JSON to preview in memory, then download or merge via Add above with data-api.
-          </p>
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-            <input
-              type="file"
-              accept=".json,application/json"
-              (change)="onImportSelected($event)"
-              class="block w-full sm:flex-1 text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-600 file:text-white hover:file:bg-slate-500" />
-            <button
-              type="button"
-              (click)="applyImport()"
-              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium shrink-0">
-              Import (memory only)
-            </button>
+        @if (adminCtx.inSetup()) {
+          <div class="border-t border-slate-600/60 pt-4">
+            <p class="text-slate-400 text-xs mb-2">
+              Import JSON to preview in memory, then download or merge via Add above with data-api.
+            </p>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+              <input
+                type="file"
+                accept=".json,application/json"
+                (change)="onImportSelected($event)"
+                class="block w-full sm:flex-1 text-sm text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-600 file:text-white hover:file:bg-slate-500" />
+              <button
+                type="button"
+                (click)="applyImport()"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-medium shrink-0">
+                Import (memory only)
+              </button>
+            </div>
           </div>
-        </div>
+        }
       </div>
     }
   </div>
@@ -258,12 +262,24 @@
                     <td class="px-4 py-3 text-slate-400 text-xs">{{ s.cardType }}</td>
                     <td class="px-4 py-3 text-slate-400 text-xs">{{ staffCategoryLabel(s.staffCategory) }}</td>
                     <td class="px-4 py-3 text-right whitespace-nowrap">
-                      <button
-                        type="button"
-                        (click)="openStaffModal(s)"
-                        class="text-[#069668] hover:text-[#058559] text-xs font-medium transition">
-                        View / Edit
-                      </button>
+                      <div class="inline-flex items-center justify-end gap-3">
+                        <button
+                          type="button"
+                          (click)="openStaffModal(s)"
+                          class="text-slate-400 hover:text-slate-200 transition"
+                          [attr.aria-label]="'View ' + s.id"
+                          [attr.title]="'View ' + s.id">
+                          <i class="fa-regular fa-eye" aria-hidden="true"></i>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="openStaffModal(s)"
+                          class="text-slate-400 hover:text-slate-200 transition"
+                          [attr.aria-label]="'Edit ' + s.id"
+                          [attr.title]="'Edit ' + s.id">
+                          <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 }

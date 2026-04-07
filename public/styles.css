@@ -218,6 +218,31 @@
   margin-bottom: 6px;
 }
 
+.report-sheet .report-beetle-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #1a3d1a;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #1a3d1a;
+}
+
+.report-sheet .report-beetle-footer-logo {
+  height: 44px;
+  width: auto;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.report-sheet .report-beetle-footer-name {
+  font-weight: 700;
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
 /* Report modal: transparent overlay with blurred background */
 .report-modal {
   position: fixed;

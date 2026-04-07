@@ -1,0 +1,5 @@
+:host {
+  display: block;
+  /* Match body vertical padding (Tailwind p-6) so login footer can sit in the visible area */
+  min-height: calc(100vh - 3rem);
+}
