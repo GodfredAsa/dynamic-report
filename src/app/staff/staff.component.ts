@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { AdminContextService } from '../auth/admin-context.service';
+import { PermissionsService } from '../auth/permissions.service';
 import { AppUserStoreService, STAFF_JSON_PATH } from '../data/app-user-store.service';
 import { APP_ROLES, AppRole, AppUser, STAFF_CARD_TYPES, STAFF_CATEGORIES } from '../data/app-user.model';
 
@@ -13,12 +14,13 @@ import { APP_ROLES, AppRole, AppUser, STAFF_CARD_TYPES, STAFF_CATEGORIES } from 
   templateUrl: './staff.component.html',
 })
 export class StaffComponent {
-  private auth = inject(AuthService);
   private router = inject(Router);
   private staffStore = inject(AppUserStoreService);
   readonly adminCtx = inject(AdminContextService);
+  readonly perms = inject(PermissionsService);
+  private authSvc = inject(AuthService);
 
-  user = this.auth.currentUser;
+  user = this.authSvc.currentUser;
   staff = this.staffStore.users;
   loaded = this.staffStore.loaded;
   staffLoadError = this.staffStore.loadError;
@@ -67,8 +69,43 @@ export class StaffComponent {
   }
 
   logout(): void {
-    this.auth.logout();
+    this.authSvc.logout();
     void this.router.navigateByUrl('/login');
+  }
+
+  async deleteStaffMember(s: AppUser): Promise<void> {
+    if (!this.adminCtx.inSetup()) {
+      return;
+    }
+    if (!this.perms.canWrite()) {
+      this.actionMessage = 'View-only access: you cannot delete staff. Use SETUP as an admin.';
+      return;
+    }
+    const sessionEmail = this.authSvc.getSessionEmail()?.trim().toLowerCase() ?? '';
+    if (sessionEmail && s.email.trim().toLowerCase() === sessionEmail) {
+      this.actionMessage = 'You cannot delete your own staff account while signed in.';
+      return;
+    }
+    if (
+      !window.confirm(
+        `Remove ${s.displayName} (${s.email}) from staff? This cannot be undone after saving.`,
+      )
+    ) {
+      return;
+    }
+    this.actionMessage = '';
+    const before = this.snapshotStaff();
+    this.staffStore.removeStaff(s.id);
+    const commit = await this.staffStore.commitStaffAndReload();
+    if (!commit.ok) {
+      this.staffStore.restoreInMemory(before);
+      this.actionMessage = commit.error;
+      return;
+    }
+    if (this.showStaffModal && this.staffEditId === s.id) {
+      this.closeStaffModal();
+    }
+    this.actionMessage = 'Staff member removed and saved to public/data/staff.json.';
   }
 
   openStaffModal(s: AppUser): void {

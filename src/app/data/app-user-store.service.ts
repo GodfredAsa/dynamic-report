@@ -189,6 +189,12 @@ export class AppUserStoreService {
     return { ok: true };
   }
 
+  /** Remove a staff row by id (in memory). Call `commitStaffAndReload` to persist. */
+  removeStaff(id: string): void {
+    const trimmed = id.trim();
+    this.users.update((list) => list.filter((u) => u.id !== trimmed));
+  }
+
   exportStaffDownload(): void {
     const text = JSON.stringify(this.users(), null, 2);
     const blob = new Blob([text], { type: 'application/json;charset=utf-8' });

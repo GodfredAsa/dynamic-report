@@ -44,10 +44,7 @@
     "location": "ACCRA",
     "status": "Active",
     "assignedStaffIds": [],
-    "assignedStudentIds": [
-      "stu-3",
-      "stu-4"
-    ]
+    "assignedStudentIds": []
   },
   {
     "id": "DEPT-03",
