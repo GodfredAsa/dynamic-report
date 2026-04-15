@@ -63,6 +63,17 @@
             Subject keys are detected automatically (e.g. Language, Numeracy, OWOP) when the value is an object with
             <code class="text-slate-400">ClassScore</code> / <code class="text-slate-400">ExamScore</code>.
           </p>
+
+          <div class="mt-3 rounded-lg border border-slate-600/60 bg-slate-950/20 p-3">
+            <p class="text-slate-400 text-xs mb-2">Example JSON (copy and edit)</p>
+            <pre
+              class="whitespace-pre overflow-x-auto text-[11px] leading-relaxed text-slate-300 font-mono"
+              [textContent]="exampleJsonTemplate"></pre>
+            <p class="text-slate-500 text-[11px] mt-2">
+              Tip: You can add more subjects by adding more keys like <span class="text-slate-300">"Science"</span> with
+              <code class="text-slate-400">ClassScore</code> / <code class="text-slate-400">ExamScore</code>.
+            </p>
+          </div>
         </div>
 
         <div>
@@ -70,19 +81,36 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="sm:col-span-2">
               <label class="block text-xs text-slate-400 mb-1">Department <span class="text-red-400">*</span></label>
-              <input
-                type="text"
+              <select
                 [(ngModel)]="general.department"
+                (ngModelChange)="onGeneralDepartmentChange()"
                 [ngModelOptions]="{ standalone: true }"
-                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="">— Select department —</option>
+                @for (d of sortedDepartments(); track d.id) {
+                  <option [value]="d.name">{{ d.name }}</option>
+                }
+              </select>
+              @if (departments().length === 0) {
+                <p class="text-slate-500 text-xs mt-2">No departments yet. Add them under <span class="text-slate-400">SETUP</span>.</p>
+              }
             </div>
             <div class="sm:col-span-2">
               <label class="block text-xs text-slate-400 mb-1">Class / Form <span class="text-red-400">*</span></label>
-              <input
-                type="text"
+              <select
                 [(ngModel)]="general.reportClass"
                 [ngModelOptions]="{ standalone: true }"
-                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="">— Select class —</option>
+                @for (c of classesForSelectedDepartment(); track c.id) {
+                  <option [value]="c.name">{{ c.name }}</option>
+                }
+              </select>
+              @if (classesForSelectedDepartment().length === 0) {
+                <p class="text-slate-500 text-xs mt-2">
+                  No class groups found{{ general.department ? ' for this department' : '' }}. Add them under <span class="text-slate-400">SETUP</span>.
+                </p>
+              }
             </div>
             <div class="sm:col-span-2">
               <label class="block text-xs text-slate-400 mb-1">School address <span class="text-red-400">*</span></label>
@@ -126,11 +154,20 @@
             </div>
             <div class="sm:col-span-2">
               <label class="block text-xs text-slate-400 mb-1">Class teacher <span class="text-red-400">*</span></label>
-              <input
-                type="text"
+              <select
                 [(ngModel)]="general.classTeacher"
                 [ngModelOptions]="{ standalone: true }"
-                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50" />
+                class="input-field w-full bg-slate-700/80 border border-slate-600 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/50">
+                <option value="">— Select class teacher —</option>
+                @for (t of teachingStaff(); track t.id) {
+                  <option [value]="t.displayName">{{ t.displayName }}</option>
+                }
+              </select>
+              @if (teachingStaff().length === 0) {
+                <p class="text-slate-500 text-xs mt-2">
+                  No teaching staff found. Add staff under <span class="text-slate-400">SETUP</span> and set their type to Teaching.
+                </p>
+              }
             </div>
             <div class="sm:col-span-2">
               <label class="block text-xs text-slate-400 mb-1">Headteacher remarks</label>

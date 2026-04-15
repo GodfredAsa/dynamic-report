@@ -13,6 +13,10 @@ import {
   ReportService,
   SubjectEntry,
 } from '../report.service';
+import { DepartmentStoreService } from '../data/department-store.service';
+import { Department, DepartmentClass } from '../data/department.model';
+import { AppUserStoreService } from '../data/app-user-store.service';
+import { AppUser } from '../data/app-user.model';
 
 export interface SubjectLine {
   name: string;
@@ -31,12 +35,50 @@ export class SingleReportComponent implements AfterViewChecked {
   private report = inject(ReportService);
   private sanitizer = inject(DomSanitizer);
   private doc = inject(DOCUMENT);
+  private departmentStore = inject(DepartmentStoreService);
+  private staffStore = inject(AppUserStoreService);
 
   /** Collapsible section (header always visible). */
   singleSectionOpen = false;
 
   form: ReportFormData = this.report.emptyForm();
   subjects: SubjectLine[] = [this.emptySubject()];
+
+  departments = this.departmentStore.departments;
+
+  sortedDepartments(): Department[] {
+    return [...this.departmentStore.departments()].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+  }
+
+  teachingStaff(): AppUser[] {
+    return this.staffStore
+      .users()
+      .filter((u) => u.staffCategory === 'teaching')
+      .slice()
+      .sort((a, b) =>
+        a.displayName.localeCompare(b.displayName, undefined, { sensitivity: 'base' }),
+      );
+  }
+
+  classesForSelectedDepartment(): DepartmentClass[] {
+    const deptName = String(this.form.department ?? '').trim();
+    if (!deptName) {
+      return this.allClasses();
+    }
+    const d = this.departmentStore.departments().find((x) => x.name === deptName);
+    return (d?.classes ?? []).slice().sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+  }
+
+  allClasses(): DepartmentClass[] {
+    const all = this.departmentStore.departments().flatMap((d) => d.classes ?? []);
+    return all.slice().sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+  }
 
   reportHtml: SafeHtml | null = null;
   showReportModal = false;

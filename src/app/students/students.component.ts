@@ -166,6 +166,48 @@ export class StudentsComponent {
     this.editStudent = this.emptyNewStudent();
   }
 
+  async deleteStudentMember(s: Student): Promise<void> {
+    if (!this.adminCtx.inSetup()) {
+      return;
+    }
+    if (!this.perms.canWrite()) {
+      this.actionMessage = 'View-only access: you cannot delete students. Use SETUP as an admin.';
+      return;
+    }
+    if (
+      !window.confirm(
+        `Remove ${s.displayName} (${s.id}) from students and all class rosters? This cannot be undone after saving.`,
+      )
+    ) {
+      return;
+    }
+    this.actionMessage = '';
+    const beforeStudents = this.snapshotStudents();
+    const beforeDepartments = this.snapshotDepartments();
+
+    this.departmentStore.removeStudentIdEverywhere(s.id);
+    const deptCommit = await this.departmentStore.commitAndReload();
+    if (!deptCommit.ok) {
+      this.departmentStore.restoreInMemory(beforeDepartments);
+      this.actionMessage = deptCommit.error;
+      return;
+    }
+
+    this.studentStore.removeStudent(s.id);
+    const studentCommit = await this.studentStore.commitStudentsAndReload();
+    if (!studentCommit.ok) {
+      this.studentStore.restoreInMemory(beforeStudents);
+      this.actionMessage = studentCommit.error;
+      return;
+    }
+
+    if (this.showStudentModal && this.studentEditId === s.id) {
+      this.closeStudentModal();
+    }
+    this.actionMessage =
+      'Student removed from public/data/students.json; rosters updated in public/data/departments.json.';
+  }
+
   async saveStudentEdit(): Promise<void> {
     if (!this.perms.canWrite()) {
       this.editStudentError = 'View-only access: you cannot edit students.';

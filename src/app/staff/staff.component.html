@@ -39,6 +39,12 @@
     </div>
   }
 
+  @if (actionMessage) {
+    <div class="mb-6 px-4 py-3 rounded-lg border border-slate-600/60 bg-slate-900/25">
+      <p class="text-slate-300 text-sm">{{ actionMessage }}</p>
+    </div>
+  }
+
   @if (adminCtx.inSetup()) {
     <div class="rounded-xl border border-slate-600/80 bg-slate-800/50 mb-6 overflow-hidden">
       <button
@@ -279,6 +285,16 @@
                           [attr.title]="'Edit ' + s.id">
                           <i class="fa-regular fa-pen-to-square" aria-hidden="true"></i>
                         </button>
+                        @if (adminCtx.inSetup()) {
+                          <button
+                            type="button"
+                            (click)="deleteStaffMember(s)"
+                            class="text-slate-400 hover:text-slate-200 transition"
+                            [attr.aria-label]="'Delete ' + s.id"
+                            [attr.title]="'Delete ' + s.id">
+                            <i class="fa-regular fa-trash-can" aria-hidden="true"></i>
+                          </button>
+                        }
                       </div>
                     </td>
                   </tr>

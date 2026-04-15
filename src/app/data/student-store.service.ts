@@ -160,6 +160,12 @@ export class StudentStoreService {
     return { ok: true };
   }
 
+  /** Remove a student by id (in memory). Call `commitStudentsAndReload` to persist. */
+  removeStudent(id: string): void {
+    const trimmed = id.trim();
+    this.students.update((list) => list.filter((s) => s.id !== trimmed));
+  }
+
   exportStudentsDownload(): void {
     const text = JSON.stringify(this.students(), null, 2);
     const blob = new Blob([text], { type: 'application/json;charset=utf-8' });

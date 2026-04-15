@@ -147,6 +147,25 @@ export class DepartmentStoreService {
   }
 
   /**
+   * Strip a student id from every department roster and class roster (in memory).
+   * Call `commitAndReload` to persist.
+   */
+  removeStudentIdEverywhere(studentId: string): void {
+    const sid = studentId.trim();
+    if (!sid) return;
+    this.departments.update((list) =>
+      list.map((d) => {
+        const deptIds = (d.assignedStudentIds ?? []).filter((x) => x !== sid);
+        const classes = (d.classes ?? []).map((c) => ({
+          ...c,
+          assignedStudentIds: (c.assignedStudentIds ?? []).filter((x) => x !== sid),
+        }));
+        return { ...d, assignedStudentIds: deptIds, classes };
+      }),
+    );
+  }
+
+  /**
    * Add a student id to a department’s `assignedStudentIds` (no-op duplicate is an error).
    */
   /**
