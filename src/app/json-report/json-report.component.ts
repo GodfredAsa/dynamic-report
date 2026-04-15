@@ -2,6 +2,10 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReportFormData, ReportService, SubjectEntry } from '../report.service';
+import { DepartmentStoreService } from '../data/department-store.service';
+import { Department, DepartmentClass } from '../data/department.model';
+import { AppUserStoreService } from '../data/app-user-store.service';
+import { AppUser } from '../data/app-user.model';
 
 type RawScore = { ClassScore?: number; ExamScore?: number };
 type RawPupil = Record<string, unknown> & {
@@ -30,6 +34,8 @@ interface ParsedPupil {
 })
 export class JsonReportComponent {
   private report = inject(ReportService);
+  private departmentStore = inject(DepartmentStoreService);
+  private staffStore = inject(AppUserStoreService);
 
   jsonSectionOpen = false;
   parseError = '';
@@ -37,6 +43,31 @@ export class JsonReportComponent {
 
   jsonText = '';
   private importFile: File | null = null;
+
+  readonly exampleJsonTemplate = `[
+  {
+    "No": 1,
+    "Name": "Kofi Mensah",
+    "ActualAttendance": 45,
+    "ExpectedAttendance": 50,
+    "Arrears": 120,
+    "NextTermFee": 300,
+    "Language": { "ClassScore": 22, "ExamScore": 60 },
+    "Numeracy": { "ClassScore": 18, "ExamScore": 55 },
+    "OWOP": { "ClassScore": 20, "ExamScore": 58 }
+  },
+  {
+    "No": 2,
+    "Name": "Abena Owusu",
+    "ActualAttendance": 48,
+    "ExpectedAttendance": 50,
+    "Arrears": 0,
+    "NextTermFee": 300,
+    "Language": { "ClassScore": 25, "ExamScore": 70 },
+    "Numeracy": { "ClassScore": 21, "ExamScore": 62 },
+    "OWOP": { "ClassScore": 23, "ExamScore": 65 }
+  }
+]`;
 
   /** Fields entered once (merged into every pupil’s print). */
   general: Omit<ReportFormData, 'studentName' | 'attendance' | 'expectedAttendance' | 'feesBalance' | 'feesNextTerm' | 'totalDue'> =
@@ -54,6 +85,46 @@ export class JsonReportComponent {
     };
 
   pupils: ParsedPupil[] = [];
+
+  departments = this.departmentStore.departments;
+
+  sortedDepartments(): Department[] {
+    return [...this.departmentStore.departments()].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+  }
+
+  classesForSelectedDepartment(): DepartmentClass[] {
+    const deptName = String(this.general.department ?? '').trim();
+    if (!deptName) {
+      return this.allClasses();
+    }
+    const d = this.departmentStore.departments().find((x) => x.name === deptName);
+    return (d?.classes ?? []).slice().sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+  }
+
+  allClasses(): DepartmentClass[] {
+    const all = this.departmentStore.departments().flatMap((d) => d.classes ?? []);
+    return all.slice().sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+    );
+  }
+
+  teachingStaff(): AppUser[] {
+    return this.staffStore
+      .users()
+      .filter((u) => u.staffCategory === 'teaching')
+      .slice()
+      .sort((a, b) =>
+        a.displayName.localeCompare(b.displayName, undefined, { sensitivity: 'base' }),
+      );
+  }
+
+  onGeneralDepartmentChange(): void {
+    this.general.reportClass = '';
+  }
 
   onImportSelected(ev: Event): void {
     const input = ev.target as HTMLInputElement;
